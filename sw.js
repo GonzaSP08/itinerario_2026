@@ -1,14 +1,8 @@
-const CACHE_NAME = "itinerario-v1";
-const APP_SHELL = [
-  "/itinerario-brasil.html",
-  "/manifest.json"
-];
+const CACHE_NAME = "itinerario-v2";
+const APP_SHELL = ["/manifest.json"];
 
-// Cache-first for app shell on install
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
@@ -24,18 +18,12 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
-  // Network-first for external APIs (weather, currency, emailjs, fonts)
-  const isApi =
-    url.hostname.includes("open-meteo.com") ||
-    url.hostname.includes("jsdelivr.net") ||
-    url.hostname.includes("emailjs.com") ||
-    url.hostname.includes("googleapis.com") ||
-    url.hostname.includes("gstatic.com") ||
-    url.hostname.includes("unpkg.com") ||
-    url.hostname.includes("rapidapi.com") ||
-    url.hostname.includes("simpleicons.org");
+  // External APIs: network-first, cache as offline fallback
+  const isExternal =
+    url.hostname !== self.location.hostname &&
+    url.hostname !== "localhost";
 
-  if (isApi) {
+  if (isExternal) {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
@@ -48,7 +36,25 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Cache-first for app shell and same-origin assets
+  // HTML navigation: always network-first so updates are instant
+  const isHtml =
+    e.request.mode === "navigate" ||
+    e.request.headers.get("accept")?.includes("text/html");
+
+  if (isHtml) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Static assets (manifest, icons, etc.): cache-first
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
