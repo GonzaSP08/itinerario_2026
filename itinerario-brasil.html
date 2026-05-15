@@ -1230,6 +1230,7 @@ function Footer({ accent, T }) {
   const fmtARS = (v) => Math.round(v).toLocaleString("es-AR");
   return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px 40px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Serif, { style: { display: "block", fontSize: 28, color: T.fg, fontStyle: "italic", letterSpacing: "-0.01em" } }, "Boa viagem."), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 10, fontSize: 9, color: fade(T, 0.35), letterSpacing: "0.16em", textTransform: "uppercase" } }, "Para Ale \u2764\uFE0F"), /* @__PURE__ */ React.createElement("div", { style: { height: 24 } }), rates ? /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.55), letterSpacing: "0.04em" } }, "1 R$ \u{1F1E7}\u{1F1F7} \xA0=\xA0 ", fmtUSD(rates.usd), " USD \u{1F1FA}\u{1F1F8} \xA0=\xA0 $ ", fmtARS(rates.ars), " \u{1F1E6}\u{1F1F7}"), rateDate && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 5, fontSize: 9, color: fade(T, 0.25), letterSpacing: "0.08em" } }, rateDate)) : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.2), letterSpacing: "0.1em" } }, "\xB7\xB7\xB7"));
 }
+const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
 const TWEAK_DEFAULTS = { "dark": false, "accent": "#0E6B70", "showHero": true };
 const OTP_COOLDOWN_S = 60;
 const OTP_MAX_SENDS = 3;
@@ -1254,9 +1255,12 @@ function LoginScreen({ onAuth }) {
   const [emailFocused, setEmailFocused] = React.useState(false);
   const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
   const emailOk = isValidEmail(email);
+  const emailAllowed = emailOk && ALLOWED_EMAILS.includes(email.trim().toLowerCase());
   const emailErr = emailTouched && email.length > 0 && !emailOk;
+  const emailNotAllowed = emailTouched && emailOk && !emailAllowed;
+  const emailInvalid = emailErr || emailNotAllowed;
   const masked = email.replace(/^(.{2})(.+?)(@.+)$/, (_, a, b, c) => a + b.replace(/./g, "\xB7") + c);
-  const canSend = cooldown === 0 && sends < OTP_MAX_SENDS && step !== "sending" && emailOk;
+  const canSend = cooldown === 0 && sends < OTP_MAX_SENDS && step !== "sending" && emailAllowed;
   const sendOtp = async () => {
     if (!canSend) return;
     setStep("sending");
@@ -1321,7 +1325,7 @@ function LoginScreen({ onAuth }) {
     letterSpacing: "0.04em",
     transition: "background .15s ease, color .15s ease"
   });
-  const emailBorderColor = emailErr ? "#E8602C" : emailFocused ? "#0E6B70" : (emailOk && emailTouched) ? "#34c759" : fade(T, 0.13);
+  const emailBorderColor = emailInvalid ? "#E8602C" : emailFocused ? "#0E6B70" : (emailAllowed && emailTouched) ? "#34c759" : fade(T, 0.13);
   const emailInputStyle = {
     width: "100%",
     padding: "12px 14px",
@@ -1334,7 +1338,7 @@ function LoginScreen({ onAuth }) {
     fontWeight: 600,
     color: T.fg,
     outline: "none",
-    marginBottom: emailErr ? 6 : 16,
+    marginBottom: emailInvalid ? 6 : 16,
     transition: "border-color .15s ease"
   };
   if (step === "success") return /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden", animation: "fadeout 0.5s ease 1.5s forwards" } }, /* @__PURE__ */ React.createElement(DecoDots, { T }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", position: "relative", zIndex: 1, animation: "fadein 0.6s ease" } }, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 86, color: T.fg, fontStyle: "italic", letterSpacing: "-0.025em", display: "block", lineHeight: 0.95 } }, "Brasil"), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16 } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 6, marginTop: 22 } }, [0, 1, 2].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: "#0E6B70", animation: `pulse 1.2s ease ${i * 0.2}s infinite` } })))));
@@ -1356,6 +1360,7 @@ function LoginScreen({ onAuth }) {
         style: emailInputStyle
       }),
       emailErr && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 14, lineHeight: 1.4 } }, "Ingres\xE1 un email v\xE1lido (ej: nombre@dominio.com)"),
+      emailNotAllowed && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 14, lineHeight: 1.4 } }, "Este correo no est\xE1 habilitado para acceder."),
       errMsg && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 12, lineHeight: 1.5 } }, errMsg),
       sends >= OTP_MAX_SENDS
         ? /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", textAlign: "center", padding: "12px 0", lineHeight: 1.6 } }, "L\xEDmite de env\xEDos alcanzado.", /* @__PURE__ */ React.createElement("br", null), "Intent\xE1 de nuevo m\xE1s tarde.")
