@@ -1203,9 +1203,7 @@ function WeatherContent({ T, accent }) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 14px' }}>
-        <Mono style={{ fontSize: 9, color: fade(T, 0.45), textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          open-meteo.com · sin API key
-        </Mono>
+        <div />
         <button onClick={fetchAll} style={{
           background: 'transparent', border: `1px solid ${fade(T, 0.12)}`, borderRadius: 8,
           padding: '4px 10px', cursor: 'pointer', color: accent,
