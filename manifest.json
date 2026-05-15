@@ -1,0 +1,24 @@
+{
+  "name": "Cumple Ale 2026 — Brasil",
+  "short_name": "Brasil 2026",
+  "description": "Itinerario de viaje a Brasil, julio 2026",
+  "start_url": "/itinerario-brasil.html",
+  "display": "standalone",
+  "background_color": "#FAF8F6",
+  "theme_color": "#0E6B70",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%230E6B70'/><text y='.9em' font-size='160'>🛫</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230E6B70'/><text y='.9em' font-size='420'>🛫</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

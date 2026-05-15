@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>🛫🇧🇷 Cumple Ale 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛫</text></svg>" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0E6B70" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230E6B70'/><text y='.9em' font-size='80'>🛫</text></svg>" />
+<script>(function(){try{var t=JSON.parse(localStorage.getItem('it_tweaks_v1')||'{}');if(t.dark)document.documentElement.style.background='#0a1024';}catch(e){}}());if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js');});}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -243,6 +249,7 @@ const EMAILJS_TPL_ID = "template_hd1ouum";
 const OTP_TTL_MS = 10 * 60 * 1e3;
 const SESSION_TTL_MS = 24 * 60 * 60 * 1e3;
 const TRIP = { city: "Brasil", country: "Brasil", dateStart: "08.07", dateEnd: "20.07", year: "2026", days: 12, travelers: 2 };
+const WEATHER_FORECAST_DAYS = 14;
 const FLIGHTS = [
   { id: "fl1", leg: "Tramo 1 / 3", airline: "GOL Linhas A\xE9reas", code: "G3 1179", flightNumber: "G31179", isoDate: "2026-07-09", locator: "AOQRBB", dep: { city: "Foz do Igua\xE7u", code: "IGU", time: "11:20", date: "Jue 09 jul" }, arr: { city: "S\xE3o Paulo", code: "GRU", time: "13:00", date: "Jue 09 jul" }, duration: "1h 40m", stops: "Directo", cabin: "Econ\xF3mica", pax: "2 pasajeros", checkinUrl: "https://www.voegol.com.br/pt/check-in", checkinOpens: "Mar 07 jul \xB7 11:20" },
   { id: "fl2", leg: "Tramo 2 / 3", airline: "GOL Linhas A\xE9reas", code: "G3 1020", flightNumber: "G31020", isoDate: "2026-07-13", locator: "HZHYHT", dep: { city: "S\xE3o Paulo", code: "CGH", time: "13:05", date: "Lun 13 jul" }, arr: { city: "Rio de Janeiro", code: "SDU", time: "14:10", date: "Lun 13 jul" }, duration: "1h 05m", stops: "Directo", cabin: "Econ\xF3mica", pax: "2 pasajeros", checkinUrl: "https://www.voegol.com.br/pt/check-in", checkinOpens: "S\xE1b 11 jul \xB7 13:05" },
@@ -459,7 +466,7 @@ const SECTIONS = [
   { id: "museos", label: "Museos", count: MUSEUMS.length, span: "SP \xB7 RJ", meta: "10 por ciudad", color: "#2A5298" },
   { id: "shoppings", label: "Shoppings", count: SHOPPINGS.length, span: "SP \xB7 RJ", meta: "10 por ciudad", color: "#9B59B6" },
   { id: "comidas", label: "Comidas", count: MEALS.length, span: "SP \xB7 RJ", meta: "10 por categor\xEDa \xB7 2 ciudades", color: "#E8602C" },
-  { id: "clima", label: "Clima", count: 14, span: "Posadas \xB7 Foz \xB7 SP \xB7 RJ", meta: "Pron\xF3stico 14 d\xEDas", color: "#0891B2" },
+  { id: "clima", label: "Clima", count: WEATHER_FORECAST_DAYS, span: "Posadas \xB7 Foz \xB7 SP \xB7 RJ", meta: `Pron\xF3stico ${WEATHER_FORECAST_DAYS} d\xEDas`, color: "#0891B2" },
   { id: "frases", label: "Frases \xFAtiles", count: FRASES.length, span: "Saludos \xB7 Resto \xB7 Emergencias", meta: "Con pronunciaci\xF3n fon\xE9tica", color: "#16A085" }
 ];
 function getDaysUntil(dateStr) {
@@ -547,7 +554,7 @@ function Hero({ accent, T, onToggleDark }) {
       }
     },
     T.dark ? /* @__PURE__ */ React.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round" }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "4" }), /* @__PURE__ */ React.createElement("path", { d: "M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" })) : /* @__PURE__ */ React.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" }))
-  )), /* @__PURE__ */ React.createElement(Serif, { style: { marginTop: 8, fontSize: 92, lineHeight: 0.95, color: T.fg, letterSpacing: "-0.025em", display: "block", fontStyle: "italic", position: "relative", zIndex: 1 } }, TRIP.city), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16, position: "relative", zIndex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18, display: "flex", alignItems: "baseline", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color: T.fg } }, TRIP.dateStart, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), margin: "0 8px" } }, "\u2192"), TRIP.dateEnd, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), marginLeft: 8 } }, "\xB7 ", TRIP.year)), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: accent, letterSpacing: "0.1em", textTransform: "uppercase" } }, daysLeft > 0 ? `T-${daysLeft} d\xEDas` : daysLeft === 0 ? "\xA1Hoy!" : "\xA1De viaje!")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 22, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", borderTop: `1px solid ${fade(T, 0.1)}`, borderBottom: `1px solid ${fade(T, 0.1)}` } }, [["D\xEDas", TRIP.days], ["Viajeros", TRIP.travelers]].map(([k, v], i) => /* @__PURE__ */ React.createElement("div", { key: k, style: { padding: "12px 0", textAlign: i === 0 ? "left" : "right" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 } }, k), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg } }, v)))));
+  )), /* @__PURE__ */ React.createElement(Serif, { style: { marginTop: 8, fontSize: 92, lineHeight: 0.95, color: T.fg, letterSpacing: "-0.025em", display: "block", fontStyle: "italic", position: "relative", zIndex: 1 } }, TRIP.city), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16, position: "relative", zIndex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18, display: "flex", alignItems: "baseline", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color: T.fg } }, TRIP.dateStart, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), margin: "0 8px" } }, "\u2192"), TRIP.dateEnd, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), marginLeft: 8 } }, "\xB7 ", TRIP.year)), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: accent, letterSpacing: "0.1em", textTransform: "uppercase" } }, daysLeft > 0 ? `T-${daysLeft} d\xEDas` : (1 - daysLeft) <= TRIP.days ? `D\xEDa ${1 - daysLeft} / ${TRIP.days}` : "\xA1Termin\xF3!")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 22, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", borderTop: `1px solid ${fade(T, 0.1)}`, borderBottom: `1px solid ${fade(T, 0.1)}` } }, [["D\xEDas", TRIP.days], ["Viajeros", TRIP.travelers]].map(([k, v], i) => /* @__PURE__ */ React.createElement("div", { key: k, style: { padding: "12px 0", textAlign: i === 0 ? "left" : "right" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 } }, k), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg } }, v)))));
 }
 function SectionList({ onOpen, accent, T }) {
   return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 0" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, "Secciones"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.1em" } }, SECTIONS.length, " \xEDtems")), /* @__PURE__ */ React.createElement("div", { style: { borderTop: `1px solid ${fade(T, 0.1)}` } }, SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement(
@@ -931,7 +938,7 @@ function WeatherContent({ T, accent }) {
     setLoading(true);
     setExpandedDay(null);
     Promise.all(WEATHER_CITIES.map(
-      (city) => fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=14`).then((r) => {
+      (city) => fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=${WEATHER_FORECAST_DAYS}`).then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
       }).then((json) => ({ id: city.id, daily: json.daily })).catch(() => ({ id: city.id, daily: null }))
@@ -955,6 +962,8 @@ function WeatherContent({ T, accent }) {
     const iso = daily2.time[expandedDay];
     const cacheKey = `${activeCity}-${iso}`;
     if (hourlyCache[cacheKey] !== void 0) return;
+    const lsKey = `wh_${cacheKey}`;
+    try { const cached = JSON.parse(localStorage.getItem(lsKey) || "null"); if (cached) { setHourlyCache((prev) => __spreadProps(__spreadValues({}, prev), { [cacheKey]: cached })); return; } } catch (e) {}
     const city = WEATHER_CITIES.find((c) => c.id === activeCity);
     setHourlyLoading(true);
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode&timezone=${encodeURIComponent(city.tz)}&start_date=${iso}&end_date=${iso}`).then((r) => {
@@ -973,6 +982,7 @@ function WeatherContent({ T, accent }) {
         });
       }
       setHourlyCache((prev) => __spreadProps(__spreadValues({}, prev), { [cacheKey]: slots }));
+      try { localStorage.setItem(lsKey, JSON.stringify(slots)); } catch (e) {}
       setHourlyLoading(false);
     }).catch(() => {
       setHourlyCache((prev) => __spreadProps(__spreadValues({}, prev), { [cacheKey]: [] }));
@@ -1132,6 +1142,8 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     });
   };
   const selectCity = (city) => setCityFilter((prev) => prev.length === 1 && prev[0] === city ? [] : [city]);
+  const clearCityFilter = () => setCityFilter([]);
+  const clearAllFilters = () => { setCityFilter([]); setCatFilter([]); };
   const toggleCat = (cat) => setCatFilter((f) => f.includes(cat) ? f.filter((c) => c !== cat) : [...f, cat]);
   const cityFilters = CITIES.map((c) => ({ key: c, label: c }));
   const catFilters = MEAL_CATEGORIES.map((c) => ({
@@ -1157,7 +1169,7 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
   const visibleCities = cityFilter.length > 0 ? CITIES.filter((c) => cityFilter.includes(c)) : CITIES;
   const GroupedSection = ({ data, Card: CardComp, cardProp }) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), visibleCities.map((city) => {
     const items = data.filter((x) => x.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
-    if (items.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T });
+    if (items.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearCityFilter });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: items, T, accent }), items.map((item, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: item.id, delay: i * 35 }, /* @__PURE__ */ React.createElement(CardComp, __spreadValues(__spreadValues({}, { [cardProp]: item }), props(item.id))))));
   }));
   return /* @__PURE__ */ React.createElement("div", { key: active, style: { animation: "fadein .35s ease", paddingTop: 20 } }, /* @__PURE__ */ React.createElement(SectionCaption, { index: idx, total, title: titles.title, hint: titles.hint, T, accent }), !ready && /* @__PURE__ */ React.createElement(SectionSkeleton, { T }), ready && active === "vuelos" && FLIGHTS.map((f, i) => {
@@ -1165,26 +1177,33 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     return /* @__PURE__ */ React.createElement(FadeIn, { key: f.id, delay: i * 60 }, /* @__PURE__ */ React.createElement(FlightCard, __spreadValues({ f, liveStatus: (_a = flightStatuses[f.id]) != null ? _a : null, onRefresh: () => handleRefreshFlight(f.id) }, props(f.id))));
   }), ready && active === "alojamientos" && STAYS.map((s, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: s.id, delay: i * 60 }, /* @__PURE__ */ React.createElement(StayCard, __spreadValues({ s }, props(s.id))))), ready && active === "actividades" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), visibleCities.map((city) => {
     const acts = ACTIVITIES.filter((a) => a.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
-    if (acts.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T });
+    if (acts.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearCityFilter });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts, T, accent }), acts.map((a, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: a.id, delay: i * 35 }, /* @__PURE__ */ React.createElement(ActivityRow, __spreadValues({ a }, props(a.id))))));
   })), ready && active === "museos" && /* @__PURE__ */ React.createElement(GroupedSection, { data: MUSEUMS, Card: MuseumCard, cardProp: "m" }), ready && active === "shoppings" && /* @__PURE__ */ React.createElement(GroupedSection, { data: SHOPPINGS, Card: ShoppingCard, cardProp: "s" }), ready && active === "comidas" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), /* @__PURE__ */ React.createElement(FilterBar, { filters: catFilters, active: catFilter, onToggle: toggleCat, accent, T }), visibleCities.map((city) => {
     const meals = (catFilter.length === 0 ? MEALS : MEALS.filter((m) => catFilter.includes(m.category))).filter((m) => m.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
-    if (meals.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T });
+    if (meals.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearAllFilters });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: meals, T, accent }), meals.map((m, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: m.id, delay: i * 50 }, /* @__PURE__ */ React.createElement(MealCard, __spreadValues({ m }, props(m.id))))));
   })), ready && active === "clima" && /* @__PURE__ */ React.createElement(WeatherContent, { T, accent }), ready && active === "frases" && /* @__PURE__ */ React.createElement(FrasesContent, { T, accent }));
 }
-function EmptyFilter({ T }) {
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Sin resultados para este filtro"));
+function EmptyFilter({ T, onClear, accent }) {
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Sin resultados para este filtro"), onClear && /* @__PURE__ */ React.createElement("button", { onClick: onClear, style: { marginTop: 12, background: "transparent", border: `1px solid ${fade(T, 0.18)}`, borderRadius: 99, padding: "6px 16px", color: fade(T, 0.55), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", letterSpacing: "0.06em" } }, "Limpiar filtros"));
 }
 function Footer({ accent, T }) {
   const [rates, setRates] = React.useState(null);
   const [rateDate, setRateDate] = React.useState(null);
   React.useEffect(() => {
+    const CACHE_KEY = "brl_rates_v1";
+    const CACHE_TTL = 60 * 60 * 1e3;
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (cached && Date.now() - cached.ts < CACHE_TTL) { setRates(cached.rates); setRateDate(cached.date); return; }
+    } catch (e) {}
     fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json").then((r) => r.ok ? r.json() : Promise.reject()).then((data) => {
-      setRates({ usd: data.brl.usd, ars: data.brl.ars });
+      const rates = { usd: data.brl.usd, ars: data.brl.ars };
+      setRates(rates);
       setRateDate(data.date);
-    }).catch(() => {
-    });
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, date: data.date, ts: Date.now() })); } catch (e) {}
+    }).catch(() => {});
   }, []);
   const fmtUSD = (v) => v < 1 ? v.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : v.toFixed(2);
   const fmtARS = (v) => Math.round(v).toLocaleString("es-AR");
@@ -1280,6 +1299,7 @@ function LoginScreen({ onAuth }) {
     "input",
     {
       ref: inputRef,
+      autoFocus: true,
       type: "text",
       inputMode: "numeric",
       maxLength: 6,
@@ -1335,7 +1355,11 @@ function App() {
       return false;
     }
   });
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [t, rawSetTweak] = useTweaks((() => { try { return { ...TWEAK_DEFAULTS, ...JSON.parse(localStorage.getItem("it_tweaks_v1") || "{}") }; } catch (e) { return TWEAK_DEFAULTS; } })());
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    rawSetTweak(keyOrEdits, val);
+    try { const edits = typeof keyOrEdits === "object" && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val }; const cur = JSON.parse(localStorage.getItem("it_tweaks_v1") || "{}"); localStorage.setItem("it_tweaks_v1", JSON.stringify({ ...cur, ...edits })); } catch (e) {}
+  }, [rawSetTweak]);
   const T = useMemo(() => makeTheme(t.dark), [t.dark]);
   const [active, setActive] = useState(null);
   const [expanded, setExpanded] = useState(null);
