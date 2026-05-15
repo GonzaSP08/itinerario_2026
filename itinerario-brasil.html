@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Itinerario · Brasil</title>
+<title>🛫🇧🇷 Cumple Ale 2026</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛫</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet" />
@@ -11,6 +12,9 @@
   html, body { margin: 0; padding: 0; background: #FAF8F6; font-family: Nunito, system-ui, sans-serif; }
   body { min-height: 100vh; }
   #root { min-height: 100vh; }
+  @keyframes fadein  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes pulse   { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -1483,18 +1487,34 @@ function Footer({ accent, T }) {
 const TWEAK_DEFAULTS = { "dark": false, "accent": "#0E6B70", "showHero": true };
 
 // ─── Login screen ─────────────────────────────────────────────
+const OTP_COOLDOWN_S  = 60; // segundos entre envíos
+const OTP_MAX_SENDS   = 3;  // máximo de envíos por sesión
+
 function LoginScreen({ onAuth }) {
   const T = makeTheme(false);
-  const [step, setStep]       = React.useState('idle'); // idle | sending | sent | verifying
-  const [code, setCode]       = React.useState('');
+  const [step, setStep]         = React.useState('idle');
+  const [code, setCode]         = React.useState('');
   const [otpStore, setOtpStore] = React.useState(null);
-  const [errMsg, setErrMsg]   = React.useState('');
+  const [errMsg, setErrMsg]     = React.useState('');
   const [attempts, setAttempts] = React.useState(0);
-  const inputRef = React.useRef(null);
+  const [sends, setSends]       = React.useState(0);
+  const [cooldown, setCooldown] = React.useState(0); // segundos restantes
+  const inputRef  = React.useRef(null);
+  const timerRef  = React.useRef(null);
+
+  // Countdown tick
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+    timerRef.current = setTimeout(() => setCooldown(c => c - 1), 1000);
+    return () => clearTimeout(timerRef.current);
+  }, [cooldown]);
 
   const masked = AUTH_EMAIL.replace(/^(.{2})(.+?)(@.+)$/, (_, a, b, c) => a + b.replace(/./g, '·') + c);
 
+  const canSend = cooldown === 0 && sends < OTP_MAX_SENDS && step !== 'sending';
+
   const sendOtp = async () => {
+    if (!canSend) return;
     setStep('sending');
     setErrMsg('');
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -1505,6 +1525,8 @@ function LoginScreen({ onAuth }) {
         { publicKey: EMAILJS_PUB_KEY }
       );
       setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
+      setSends(s => s + 1);
+      setCooldown(OTP_COOLDOWN_S);
       setStep('sent');
       setAttempts(0);
       setTimeout(() => inputRef.current?.focus(), 80);
@@ -1522,7 +1544,8 @@ function LoginScreen({ onAuth }) {
     }
     if (code === otpStore.otp) {
       sessionStorage.setItem('_itAuth', JSON.stringify({ verified: true, expires: Date.now() + SESSION_TTL_MS }));
-      onAuth();
+      setStep('success');
+      setTimeout(onAuth, 2000);
     } else {
       const n = attempts + 1;
       setAttempts(n);
@@ -1544,6 +1567,23 @@ function LoginScreen({ onAuth }) {
     transition: 'background .15s ease, color .15s ease',
   });
 
+  if (step === 'success') return (
+    <div style={{ position: 'fixed', inset: 0, background: T.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', animation: 'fadeout 0.5s ease 1.5s forwards' }}>
+      <DecoDots T={T} />
+      <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, animation: 'fadein 0.6s ease' }}>
+        <Serif style={{ fontSize: 86, color: T.fg, fontStyle: 'italic', letterSpacing: '-0.025em', display: 'block', lineHeight: 0.95 }}>
+          Brasil
+        </Serif>
+        <AlinesBar style={{ marginTop: 16 }} />
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 22 }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: '#0E6B70', animation: `pulse 1.2s ease ${i * 0.2}s infinite` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'Nunito, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
       <DecoDots T={T} />
@@ -1559,7 +1599,14 @@ function LoginScreen({ onAuth }) {
               Se enviará un código de 6 dígitos a<br /><span style={{ color: T.fg, fontWeight: 700 }}>{masked}</span>
             </Mono>
             {errMsg && <Mono style={{ display: 'block', fontSize: 11, color: '#E8602C', marginBottom: 12, lineHeight: 1.5 }}>{errMsg}</Mono>}
-            <button onClick={sendOtp} style={btnStyle(true)}>Enviar código</button>
+            {sends >= OTP_MAX_SENDS
+              ? <Mono style={{ display: 'block', fontSize: 11, color: '#E8602C', textAlign: 'center', padding: '12px 0', lineHeight: 1.6 }}>
+                  Límite de envíos alcanzado.<br />Intentá de nuevo más tarde.
+                </Mono>
+              : <button onClick={sendOtp} disabled={!canSend} style={btnStyle(canSend)}>
+                  {cooldown > 0 ? `Reenviar en ${cooldown}s` : 'Enviar código'}
+                </button>
+            }
           </>)}
 
           {step === 'sending' && (
@@ -1595,9 +1642,11 @@ function LoginScreen({ onAuth }) {
             <button onClick={verify} disabled={code.length < 6} style={btnStyle(code.length === 6)}>
               Verificar →
             </button>
-            <button onClick={() => { setStep('idle'); setCode(''); setErrMsg(''); }}
-              style={{ display: 'block', width: '100%', marginTop: 10, background: 'transparent', border: 'none', padding: '8px', color: fade(T, 0.45), fontFamily: 'Nunito', fontSize: 11, cursor: 'pointer', letterSpacing: '0.04em' }}>
-              ← Reenviar código
+            <button
+              onClick={() => { if (canSend) { setStep('idle'); setCode(''); setErrMsg(''); } }}
+              disabled={!canSend && sends >= OTP_MAX_SENDS}
+              style={{ display: 'block', width: '100%', marginTop: 10, background: 'transparent', border: 'none', padding: '8px', color: fade(T, canSend ? 0.45 : 0.25), fontFamily: 'Nunito', fontSize: 11, cursor: canSend ? 'pointer' : 'default', letterSpacing: '0.04em' }}>
+              {sends >= OTP_MAX_SENDS ? 'Límite alcanzado' : cooldown > 0 ? `← Reenviar en ${cooldown}s` : '← Reenviar código'}
             </button>
           </>)}
         </div>
