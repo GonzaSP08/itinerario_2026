@@ -1,0 +1,1678 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Itinerario · Brasil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #FAF8F6; font-family: Nunito, system-ui, sans-serif; }
+  body { min-height: 100vh; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- Tweaks Panel                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = { x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)), y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)) };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(clampToViewport) : null;
+    if (ro) { ro.observe(document.documentElement); return () => ro.disconnect(); }
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => { setOpen(false); window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right, startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => { offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) }; clampToViewport(); };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ label, children }) {
+  return <><div className="twk-sect">{label}</div>{children}</>;
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'} role="switch" aria-checked={!!value} onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" style={{ appearance: 'none', width: 56, height: 22, border: '.5px solid rgba(0,0,0,.1)', borderRadius: 6, padding: 0, cursor: 'default', background: 'transparent', flexShrink: 0 }} value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <div className="twk-row"><div className="twk-lbl"><span>{label}</span></div>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" data-on={on ? '1' : '0'} style={{ background: hero }} onClick={() => onChange(o)}>
+              {rest.slice(0, 4).length > 0 && <span>{rest.slice(0, 4).map((c, j) => <i key={j} style={{ background: c }} />)}</span>}
+              {on && <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" stroke={(() => { const h = String(hero).replace('#',''); const x = h.length===3?h.replace(/./g,c=>c+c):h.padEnd(6,'0'); const n=parseInt(x.slice(0,6),16); if(Number.isNaN(n))return'rgba(0,0,0,.78)'; const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return r*299+g*587+b*114>148000?'rgba(0,0,0,.78)':'#fff'; })()} /></svg>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { useTweaks, TweaksPanel, TweakSection, TweakToggle, TweakColor });
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- Itinerary App                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const { useState, useMemo, useRef, useEffect } = React;
+
+// ─── Theme ────────────────────────────────────────────────────
+const makeTheme = (dark) => dark ? {
+  dark: true, pageBg: '#0a1024', bg: '#13213d', fg: '#FAF8F6',
+  baseRGB: '250,248,246', invertGap: '#13213d', cardBg: 'rgba(250,248,246,0.04)',
+} : {
+  dark: false, pageBg: '#efe7d8', bg: '#FAF8F6', fg: '#1A2F5A',
+  baseRGB: '26,47,90', invertGap: '#FAF8F6', cardBg: '#FFFFFF',
+};
+const fade = (T, a) => `rgba(${T.baseRGB},${a})`;
+
+// ─── Auth config ─────────────────────────────────────────────
+// TODO: Completar con tus credenciales de emailjs.com (cuenta gratuita)
+const AUTH_EMAIL      = 'pallottags@gmail.com'; // destinatario del OTP
+const EMAILJS_PUB_KEY = 'C1A8hYcArFniGBdtZ'; // Account > API Keys > Public Key
+const EMAILJS_SVC_ID  = 'service_l9vgn2g';  // Email Services > Service ID
+const EMAILJS_TPL_ID  = 'template_hd1ouum';  // Email Templates > Template ID
+const OTP_TTL_MS      = 10 * 60 * 1000;      // 10 min de validez
+const SESSION_TTL_MS  = 24 * 60 * 60 * 1000; // sesión dura 24 h
+
+// ─── Trip data ────────────────────────────────────────────────
+const TRIP = { city: 'Brasil', country: 'Brasil', dateStart: '08.07', dateEnd: '20.07', year: '2026', days: 12, travelers: 2 };
+
+const FLIGHTS = [
+  { id: 'fl1', leg: 'Tramo 1 / 3', airline: 'GOL Linhas Aéreas', code: 'G3 1179', flightNumber: 'G31179', isoDate: '2026-07-09', locator: 'AOQRBB', dep: { city: 'Foz do Iguaçu', code: 'IGU', time: '11:20', date: 'Jue 09 jul' }, arr: { city: 'São Paulo', code: 'GRU', time: '13:00', date: 'Jue 09 jul' }, duration: '1h 40m', stops: 'Directo', cabin: 'Económica', pax: '2 pasajeros' },
+  { id: 'fl2', leg: 'Tramo 2 / 3', airline: 'GOL Linhas Aéreas', code: 'G3 1020', flightNumber: 'G31020', isoDate: '2026-07-13', locator: 'HZHYHT', dep: { city: 'São Paulo', code: 'CGH', time: '13:05', date: 'Lun 13 jul' }, arr: { city: 'Rio de Janeiro', code: 'SDU', time: '14:10', date: 'Lun 13 jul' }, duration: '1h 05m', stops: 'Directo', cabin: 'Económica', pax: '2 pasajeros' },
+  { id: 'fl3', leg: 'Tramo 3 / 3', airline: 'GOL Linhas Aéreas', code: 'G3 1390', flightNumber: 'G31390', isoDate: '2026-07-19', locator: 'HZHYHT', dep: { city: 'Rio de Janeiro', code: 'GIG', time: '14:00', date: 'Dom 19 jul' }, arr: { city: 'Foz do Iguaçu', code: 'IGU', time: '16:20', date: 'Dom 19 jul' }, duration: '2h 20m', stops: 'Directo', cabin: 'Económica', pax: '2 pasajeros' },
+];
+
+const STAYS = [
+  { id: 'st1', city: 'Foz do Iguaçu', name: 'Por definir', type: 'Alojamiento · Foz do Iguaçu', nights: 1, checkIn: '08 jul', checkOut: '09 jul', address: 'Foz do Iguaçu, PR · Brasil', tbd: true, status: 'TBD', booking: 'https://www.booking.com/searchresults.html?ss=Foz+do+Igua%C3%A7u%2C+Brazil&checkin=2026-07-08&checkout=2026-07-09&group_adults=2&no_rooms=1' },
+  { id: 'st2', city: 'São Paulo', name: 'Alameda Lorena, 718', type: 'Airbnb · São Paulo', nights: 4, checkIn: 'Jue 09 jul', checkInTime: '15:00', checkOut: 'Lun 13 jul', checkOutTime: '11:00', address: 'Alameda Lorena, 718 · São Paulo, SP 01424-002', tbd: false, status: 'Confirmado', mapsUrl: 'https://www.google.com/maps/search/?api=1&query=-23.568803341235984%2C-46.660188138484955', airbnb: 'https://www.airbnb.com.ar/rooms/1538749038282984382?guests=1&adults=1&s=67&unique_share_id=ae6044fe-4480-4be8-bd81-3b3af0608b5e' },
+  { id: 'st3', city: 'Rio de Janeiro', name: 'Rua Sousa Lima, 16', type: 'Airbnb · Rio de Janeiro', nights: 6, checkIn: 'Lun 13 jul', checkInTime: '14:00', checkOut: 'Dom 19 jul', checkOutTime: '11:00', address: 'Rua Sousa Lima, 16 · Rio de Janeiro, RJ 22081-010', tbd: false, status: 'Confirmado', mapsUrl: 'https://www.google.com/maps/search/?api=1&query=-22.98174285888672%2C-43.19001770019531', airbnb: 'https://www.airbnb.com.ar/rooms/7342274?guests=1&adults=1&s=67&unique_share_id=754af553-e290-4915-af3b-c9fa2c5430ac' },
+  { id: 'st4', city: 'Foz do Iguaçu', name: 'Por definir', type: 'Alojamiento · Foz do Iguaçu', nights: 1, checkIn: '19 jul', checkOut: '20 jul', address: 'Foz do Iguaçu, PR · Brasil', tbd: true, status: 'TBD', booking: 'https://www.booking.com/searchresults.html?ss=Foz+do+Igua%C3%A7u%2C+Brazil&checkin=2026-07-19&checkout=2026-07-20&group_adults=2&no_rooms=1' },
+];
+
+const ACTIVITIES = [
+  // São Paulo
+  { id: 'a01', city: 'São Paulo', area: 'Moema', name: 'Parque Ibirapuera', kind: 'Parque urbano', note: 'El gran parque de SP: lago, ciclovía y el mejor spot para correr, pedalear o simplemente descansar.', rating: '4.8', hours: 'Todos los días  6:00 – 00:00', website: null },
+  { id: 'a02', city: 'São Paulo', area: 'Bela Vista', name: 'Avenida Paulista', kind: 'Icono de ciudad', note: 'El corazón de SP: shows callejeros, food trucks y vida urbana; peatonal los domingos.', rating: '4.7', hours: 'Aberta 24h · Peatonal dom 9:00 – 16:00', website: null },
+  { id: 'a03', city: 'São Paulo', area: 'Consolação', name: 'Rua Augusta', kind: 'Barrio · noche', note: 'El corredor bohemio y LGBT de SP con bares alternativos, concept stores y la mejor escena nocturna de la ciudad.', rating: '4.5', hours: '24h · Noche desde 22:00', website: null },
+  { id: 'a04', city: 'São Paulo', area: 'Vila Madalena', name: 'Vila Madalena & Beco do Batman', kind: 'Street art · barrio', note: 'Barrio bohemio con murales gigantes, bares con música ao vivo y galerías en cada esquina.', rating: '4.6', hours: 'Visitable 24h  ·  Mejor de tarde en adelante', website: null },
+  { id: 'a05', city: 'São Paulo', area: 'Liberdade', name: 'Bairro da Liberdade', kind: 'Barrio japonés', note: 'El barrio japonés más grande fuera de Japón, con restoranes auténticos y feria dominical imperdible.', rating: '4.5', hours: '24h  ·  Feria dom 9:00 – 18:00', website: null },
+  { id: 'a06', city: 'São Paulo', area: 'Centro', name: 'Mercado Municipal (Mercadão)', kind: 'Mercado histórico', note: 'Mercado centenario con vitrales de Benedito Calixto, famoso por el sándwich de mortadella gigante.', rating: '4.6', hours: 'Lun–Sáb 6:00 – 18:00  ·  Dom 6:00 – 16:00', website: null },
+  { id: 'a07', city: 'São Paulo', area: 'Pinheiros', name: 'Mercado de Pinheiros', kind: 'Mercado artesanal', note: 'Mercado de producto fresco, gastronomía gourmet y DJs en vivo los fines de semana.', rating: '4.6', hours: 'Mar–Sáb 7:00 – 16:00  ·  Dom 7:00 – 14:00', website: null },
+  { id: 'a08', city: 'São Paulo', area: 'Centro', name: 'Theatro Municipal de São Paulo', kind: 'Teatro · arquitectura', note: 'Ópera beaux-arts de 1911, considerada uno de los edificios más bellos de América del Sur.', rating: '4.7', hours: 'Tour: Mar–Vie 12:00 – 17:00  ·  Sáb 10:00 – 14:00', website: 'https://theatromunicipal.org.br' },
+  { id: 'a09', city: 'São Paulo', area: 'Centro', name: 'Catedral Metropolitana da Sé', kind: 'Arquitectura · religioso', note: 'Catedral neogótica con 14 torres en el corazón histórico de SP, con cripta visitable incluida.', rating: '4.5', hours: 'Lun–Vie 8:00 – 19:00  ·  Sáb–Dom 8:00 – 18:00', website: null },
+  { id: 'a10', city: 'São Paulo', area: 'Perdizes', name: 'Allianz Parque — Tour Palmeiras', kind: 'Fútbol · estadio', note: 'Estadio multiuso de Palmeiras con tour interactivo, vestuarios y el Salón de la Fama palmeirense.', rating: '4.7', hours: 'Mar–Dom 10:00 – 17:00', website: 'https://allianzparque.com.br' },
+  { id: 'a11', city: 'São Paulo', area: 'Cantareira', name: 'Parque Estadual da Cantareira', kind: 'Naturaleza · senderismo', note: 'El bosque atlántico más grande del mundo dentro de una ciudad, con trilhas, cascadas y miradores.', rating: '4.7', hours: 'Mar–Dom 8:00 – 17:00', website: null },
+  { id: 'a12', city: 'São Paulo', area: 'Ipiranga', name: 'Zoológico de São Paulo', kind: 'Naturaleza · familia', note: 'Uno de los zoológicos más grandes del mundo con más de 3.000 animales en 824 hectáreas de Mata Atlântica.', rating: '4.5', hours: 'Mar–Dom 9:00 – 17:00', website: 'https://zoologico.com.br' },
+  { id: 'a13', city: 'São Paulo', area: 'Centro', name: 'Feira de Artesanato da Praça da República', kind: 'Feria dominical', note: 'Feria de artesanías, pinturas y joyas cada domingo en la plaza más clásica del Centro de SP.', rating: '4.5', hours: 'Dom 8:00 – 17:00', website: null },
+  { id: 'a14', city: 'São Paulo', area: 'Vila Madalena', name: 'Tour de Grafite em São Paulo', kind: 'Arte urbano · tour', note: 'Recorrido guiado por los mejores murales de SP: Beco do Batman, Centro histórico y Paulista.', rating: '4.8', hours: 'Según operador · Mejor de mañana', website: null },
+  { id: 'a15', city: 'São Paulo', area: 'Centro', name: 'Rua 25 de Março', kind: 'Comercio popular', note: 'El bazar a cielo abierto más animado de SP, con mercancía de todo tipo a precios de fábrica.', rating: '4.2', hours: 'Lun–Sáb 8:00 – 18:00', website: null },
+  { id: 'a16', city: 'São Paulo', area: 'Liberdade', name: 'Feira da Liberdade', kind: 'Feria dominical', note: 'La feria japonesa más grande de América Latina, cada domingo en el Largo da Liberdade con comida y artesanías.', rating: '4.6', hours: 'Dom 9:00 – 18:00', website: null },
+  { id: 'a17', city: 'São Paulo', area: 'Pinheiros', name: 'Parque Villa-Lobos', kind: 'Parque · deporte', note: 'Gran parque urbano con ciclovía de 4 km, pista de skate y espacio de shows al aire libre.', rating: '4.7', hours: 'Todos los días 6:00 – 20:00', website: null },
+  { id: 'a18', city: 'São Paulo', area: 'Centro', name: 'Vale do Anhangabaú', kind: 'Plaza histórica', note: 'El corazón histórico rediseñado de SP con fuentes, shows callejeros y arquitectura del Brasil moderno.', rating: '4.3', hours: '24h', website: null },
+  { id: 'a19', city: 'São Paulo', area: 'Santa Cecília', name: 'Bar Brahma', kind: 'Bar · histórico', note: 'Histórico bar-restaurante de 1948, símbolo de la bohemia paulistana, con música ao vivo y chope gelado.', rating: '4.4', hours: 'Lun–Sáb 12:00 – 02:00  ·  Dom 12:00 – 00:00', website: null },
+  { id: 'a20', city: 'São Paulo', area: 'Itaim Bibi', name: 'Gastronomia em Itaim Bibi', kind: 'Gastronomía · barrio', note: 'El barrio más gastronómico de SP: decenas de restaurantes de cocina mundial en pocas manzanas.', rating: '4.6', hours: 'Según restaurante · Mayor actividad noche', website: null },
+  // Rio de Janeiro
+  { id: 'a21', city: 'Rio de Janeiro', area: 'Corcovado', name: 'Cristo Redentor', kind: 'Icono · mirador', note: 'La estatua más icónica de Brasil coronando el Corcovado, con vistas de 360° a toda la ciudad.', rating: '4.8', hours: 'Todos los días 8:00 – 19:00', website: 'https://tremdocorcovado.rio' },
+  { id: 'a22', city: 'Rio de Janeiro', area: 'Urca', name: 'Pão de Açúcar', kind: 'Teleférico · mirador', note: 'Dos cimas de granito unidas por teleférico con vistas panorámicas de la bahía y las playas.', rating: '4.8', hours: 'Todos los días 9:00 – 21:00', website: 'https://bondinho.com.br' },
+  { id: 'a23', city: 'Rio de Janeiro', area: 'Ipanema', name: 'Praia de Ipanema', kind: 'Playa', note: 'La playa más vibrante de Río, con postos temáticos, volleyball y el sunset más famoso de Brasil.', rating: '4.7', hours: 'Aberta 24h', website: null },
+  { id: 'a24', city: 'Rio de Janeiro', area: 'Copacabana', name: 'Praia de Copacabana', kind: 'Playa', note: '4 km de playa frente al mar con el icónico bordado de piedra portuguesa y ambiente carioca a toda hora.', rating: '4.6', hours: 'Aberta 24h', website: null },
+  { id: 'a25', city: 'Rio de Janeiro', area: 'Jardim Botânico', name: 'Jardim Botânico do Rio', kind: 'Naturaleza · jardín', note: 'Jardín real de 1808 con la majestuosa Fila de Palmeiras Imperial y más de 6.500 especies vegetales.', rating: '4.7', hours: 'Todos los días 8:00 – 17:00', website: 'https://jbrj.gov.br' },
+  { id: 'a26', city: 'Rio de Janeiro', area: 'Santa Teresa', name: 'Bairro de Santa Teresa', kind: 'Barrio bohemio', note: 'Barrio colonial en las colinas con casas de artistas, galerías, restaurantes y el bondinho histórico.', rating: '4.7', hours: 'Visitable 24h  ·  Bondinho sáb–dom 12:00 – 18:00', website: null },
+  { id: 'a27', city: 'Rio de Janeiro', area: 'Ipanema', name: 'Feira Hippie de Ipanema', kind: 'Feria dominical', note: 'La feria de artesanías más famosa de Río, cada domingo en la Praça General Osório con objetos únicos.', rating: '4.5', hours: 'Dom 9:00 – 18:00', website: null },
+  { id: 'a28', city: 'Rio de Janeiro', area: 'Maracanã', name: 'Estádio do Maracanã', kind: 'Fútbol · tour', note: 'El estadio más legendario del mundo, con tours que incluyen el Salón de la Fama y el campo.', rating: '4.5', hours: 'Tour todos los días 9:00 – 17:00', website: 'https://maracana.com' },
+  { id: 'a29', city: 'Rio de Janeiro', area: 'Tijuca', name: 'Parque Nacional da Tijuca', kind: 'Naturaleza · trilhas', note: 'La mayor selva urbana del mundo, con cascadas, miradores y senderos de todos los niveles de dificultad.', rating: '4.7', hours: 'Todos los días 8:00 – 17:00', website: null },
+  { id: 'a30', city: 'Rio de Janeiro', area: 'Lapa', name: 'Lapa & Arcos da Lapa', kind: 'Cultura · vida nocturna', note: 'El corazón del samba carioca: arcos coloniales del siglo XVIII y botecos con música ao vivo hasta el amanecer.', rating: '4.6', hours: 'Arcos 24h  ·  Vida nocturna Jue–Sáb desde 20:00', website: null },
+  { id: 'a31', city: 'Rio de Janeiro', area: 'Santa Teresa', name: 'Parque das Ruínas', kind: 'Parque · mirador', note: 'Casa de principios del siglo XX convertida en espacio cultural abierto, con miradores espectaculares sobre Río.', rating: '4.6', hours: 'Mar–Dom 8:00 – 17:00', website: null },
+  { id: 'a32', city: 'Rio de Janeiro', area: 'Copacabana', name: 'Forte de Copacabana', kind: 'Historia · mirador', note: 'Fuerte militar de 1914 con las mejores vistas de la playa de Copacabana y el Pão de Açúcar al fondo.', rating: '4.6', hours: 'Mar–Dom 10:00 – 20:00', website: null },
+  { id: 'a33', city: 'Rio de Janeiro', area: 'Lagoa', name: 'Lagoa Rodrigo de Freitas', kind: 'Naturaleza · deporte', note: 'Laguna con ciclovía de 7,5 km, kioscos de gastronomía y vistas al Cristo Redentor al fondo.', rating: '4.7', hours: '24h  ·  Kioscos desde 11:00', website: null },
+  { id: 'a34', city: 'Rio de Janeiro', area: 'Santa Teresa', name: 'Mirante Dona Marta', kind: 'Mirador gratuito', note: 'El mejor mirador gratuito de Río, con vista directa al Cristo, la bahía y el skyline carioca.', rating: '4.7', hours: 'Todos los días 10:00 – 20:00', website: null },
+  { id: 'a35', city: 'Rio de Janeiro', area: 'Grumari', name: 'Praia de Grumari', kind: 'Playa virgen', note: 'La playa más remota y virgen de Río, dentro del parque ambiental, sin edificios ni comercios a la vista.', rating: '4.8', hours: 'Aberta 24h  ·  Acceso por carro o tour', website: null },
+  { id: 'a36', city: 'Rio de Janeiro', area: 'Urca', name: 'Praia Vermelha', kind: 'Playa tranquila', note: 'Pequeña playa enclavada entre el Sugarloaf y el Morro do Leme, de aguas calmas y verde exuberante.', rating: '4.7', hours: 'Aberta 24h', website: null },
+  { id: 'a37', city: 'Rio de Janeiro', area: 'Leme', name: 'Morro do Leme', kind: 'Senderismo · mirador', note: 'Trilha de 1,2 km hasta un fuerte militar con vistas únicas de toda la extensión de Copacabana.', rating: '4.7', hours: 'Todos los días 7:30 – 18:00', website: null },
+  { id: 'a38', city: 'Rio de Janeiro', area: 'Gávea', name: 'Pedra da Gávea', kind: 'Senderismo · montaña', note: 'La caminata más desafiante de Río: 3,5 km entre selva y roca hasta 842 m de altura y vistas sin igual.', rating: '4.8', hours: 'Acceso libre  ·  Salida temprana recomendada', website: null },
+  { id: 'a39', city: 'Rio de Janeiro', area: 'Leblon', name: 'Praia do Leblon', kind: 'Playa', note: 'La playa más exclusiva y tranquila de Río, favorita de los cariocas locales, con Dois Irmãos al fondo.', rating: '4.7', hours: 'Aberta 24h', website: null },
+  { id: 'a40', city: 'Rio de Janeiro', area: 'Lapa', name: 'Escadaria Selarón', kind: 'Arte urbano', note: 'Escalera de 250 escalones cubiertos con 2.000 azulejos de 60 países, obra maestra del artista Jorge Selarón.', rating: '4.7', hours: 'Aberta 24h  ·  Mejor de día', website: null },
+];
+
+const MUSEUMS = [
+  // São Paulo
+  { id: 'mu01', city: 'São Paulo', area: 'Bela Vista', name: 'MASP — Museu de Arte de São Paulo', kind: 'Arte · colección permanente', note: 'El museo más importante de Brasil, con obras de Rembrandt, Monet y Di Cavalcanti suspendidas en cristal sobre la Av. Paulista.', rating: '4.7', hours: 'Mar–Dom 10:00–18:00 · Jue hasta 20:00', website: 'https://masp.org.br', ticket: 'R$ 60' },
+  { id: 'mu02', city: 'São Paulo', area: 'Luz', name: 'Pinacoteca do Estado', kind: 'Arte brasileño · siglos XIX–XX', note: 'El museo de arte más antiguo de SP en un edificio de ladrillo rehabilitado por Paulo Mendes da Rocha.', rating: '4.7', hours: 'Mié–Lun 10:00–17:30', website: 'https://pinacoteca.org.br', ticket: 'R$ 20' },
+  { id: 'mu03', city: 'São Paulo', area: 'Pacaembu', name: 'Museu do Futebol', kind: 'Deporte · interactivo', note: 'Inmersión total en la historia del fútbol brasileño, instalado bajo las tribunas del Estadio do Pacaembu.', rating: '4.7', hours: 'Mar–Dom 9:00–17:00', website: 'https://museudofutebol.org.br', ticket: 'R$ 20' },
+  { id: 'mu04', city: 'São Paulo', area: 'Ibirapuera', name: 'MAM — Museu de Arte Moderna SP', kind: 'Arte moderno y contemporáneo', note: 'Arte moderno y contemporáneo brasileño en el pabellón Alfonso Reidy dentro del Parque Ibirapuera.', rating: '4.5', hours: 'Mar–Dom 10:00–18:00', website: 'https://mam.org.br', ticket: 'R$ 25' },
+  { id: 'mu05', city: 'São Paulo', area: 'Luz', name: 'Museu da Língua Portuguesa', kind: 'Cultura · tecnología', note: 'Experiencia inmersiva sobre el idioma portugués instalada en la espectacular Estação da Luz restaurada de 1901.', rating: '4.7', hours: 'Mar–Dom 10:00–18:00', website: 'https://museudalinguaportuguesa.org.br', ticket: 'R$ 20' },
+  { id: 'mu06', city: 'São Paulo', area: 'Ipiranga', name: 'Museu do Ipiranga', kind: 'Historia nacional', note: 'Sede de la Independencia de Brasil, recientemente restaurado. Arquitectura monumental y acervo histórico único.', rating: '4.6', hours: 'Mar–Dom 10:00–17:30', website: null, ticket: 'R$ 30' },
+  { id: 'mu07', city: 'São Paulo', area: 'Luz', name: 'Estação Pinacoteca', kind: 'Arte contemporáneo', note: 'Arte contemporáneo brasileño a gran escala en la histórica estación de tren rehabilitada de 1900.', rating: '4.6', hours: 'Mié–Lun 10:00–17:30', website: 'https://pinacoteca.org.br', ticket: 'R$ 20' },
+  { id: 'mu08', city: 'São Paulo', area: 'Ibirapuera', name: 'Museu Afro Brasil', kind: 'Historia afrobrasileña', note: 'El mayor acervo de arte y cultura afrobrasileña del mundo, en el pabellón de la Bienal del Parque Ibirapuera.', rating: '4.6', hours: 'Mié–Lun 10:00–17:00', website: null, ticket: 'R$ 10' },
+  { id: 'mu09', city: 'São Paulo', area: 'Butantã', name: 'Instituto Butantan', kind: 'Ciencias naturales', note: 'Centro de investigación de venenos con serpentario vivo, exposición de escorpiones y colección científica única.', rating: '4.5', hours: 'Mar–Dom 9:00–16:45', website: 'https://butantan.gov.br', ticket: 'Gratis' },
+  { id: 'mu10', city: 'São Paulo', area: 'Centro', name: 'Museu de Arte Sacra de SP', kind: 'Arte sacra colonial', note: 'Colección de escultura y orfebrería barroca del Brasil colonial en un convento benedictino del siglo XVII.', rating: '4.6', hours: 'Mar–Vie 10:00–18:00 · Sáb 10:00–17:00', website: null, ticket: 'R$ 15' },
+  // Rio de Janeiro
+  { id: 'mu11', city: 'Rio de Janeiro', area: 'Porto Maravilha', name: 'Museu do Amanhã', kind: 'Ciencias del futuro', note: 'Museo de ciencias con arquitectura espectacular de Santiago Calatrava y exposiciones interactivas sobre sostenibilidad.', rating: '4.6', hours: 'Mar–Dom 10:00–18:00', website: 'https://museudoamanha.org.br', ticket: 'R$ 30' },
+  { id: 'mu12', city: 'Rio de Janeiro', area: 'Centro', name: 'Museu Nacional de Belas Artes', kind: 'Arte brasileño y europeo', note: 'El mayor acervo de arte del país: desde el período colonial hasta el modernismo, en edificio neoclásico de 1908.', rating: '4.5', hours: 'Mar–Vie 10:00–18:00 · Sáb–Dom 12:00–17:00', website: null, ticket: 'R$ 20' },
+  { id: 'mu13', city: 'Rio de Janeiro', area: 'Centro', name: 'Real Gabinete Português de Leitura', kind: 'Biblioteca histórica', note: 'Catalogado entre los más bellos del mundo: interior neo-manuelino de 1887 con techo de cristal y 350.000 volúmenes.', rating: '4.8', hours: 'Lun–Vie 9:00–18:00 · Sáb 9:00–13:00', website: null, ticket: 'Gratis' },
+  { id: 'mu14', city: 'Rio de Janeiro', area: 'Centro', name: 'Museu Histórico Nacional', kind: 'Historia de Brasil', note: 'La historia de Brasil desde la colonia hasta la República, en un fuerte colonial de 1603 con 300.000 piezas.', rating: '4.5', hours: 'Mar–Vie 10:00–17:30 · Sáb–Dom 14:00–17:00', website: 'https://museuhistoriconacional.com.br', ticket: 'R$ 20' },
+  { id: 'mu15', city: 'Rio de Janeiro', area: 'Porto Maravilha', name: 'AquaRio', kind: 'Acuario · ciencias marinas', note: 'El mayor acuario de América del Sur, con 350 especies y un espectacular túnel submarino de 28 metros.', rating: '4.5', hours: 'Todos los días 10:00–18:00', website: 'https://aquario.rio', ticket: 'R$ 80' },
+  { id: 'mu16', city: 'Rio de Janeiro', area: 'Centro', name: 'CCBB — Centro Cultural Banco do Brasil', kind: 'Arte y espectáculos', note: 'Las mejores exposiciones temporales de Río más cine y shows en vivo, en un palacio neoclásico del siglo XIX.', rating: '4.7', hours: 'Mar–Dom 9:00–21:00', website: 'https://culturabancodobrasil.com.br', ticket: 'Gratis – R$ 20' },
+  { id: 'mu17', city: 'Rio de Janeiro', area: 'Porto Maravilha', name: 'Museu de Arte do Rio (MAR)', kind: 'Arte contemporáneo', note: 'Arte contemporáneo brasileño y carioca en un edificio de Bernardes & Jacobsen frente al puerto revitalizado.', rating: '4.6', hours: 'Mar–Dom 10:00–17:00', website: null, ticket: 'R$ 20' },
+  { id: 'mu18', city: 'Rio de Janeiro', area: 'Catete', name: 'Museu da República — Palácio do Catete', kind: 'Historia política', note: 'Sede de la Presidencia hasta 1960, donde Getúlio Vargas se suicidó. Jardines abiertos y acervo histórico.', rating: '4.5', hours: 'Mar–Vie 10:00–17:00 · Sáb–Dom 14:00–18:00', website: null, ticket: 'R$ 10' },
+  { id: 'mu19', city: 'Rio de Janeiro', area: 'Barra da Tijuca', name: 'Museu Casa do Pontal', kind: 'Arte popular brasileño', note: 'La mayor colección de arte popular de Brasil: 8.000 piezas que narran las tradiciones de todo el país.', rating: '4.7', hours: 'Mar–Dom 9:30–17:00', website: null, ticket: 'R$ 25' },
+  { id: 'mu20', city: 'Rio de Janeiro', area: 'Centro', name: 'Museu do Carnaval', kind: 'Cultura · carnaval', note: 'La historia y magia del Carnaval de Río: carrozas, trajes y la evolución de la mayor fiesta del mundo.', rating: '4.4', hours: 'Mar–Dom 9:00–18:00', website: null, ticket: 'R$ 15' },
+];
+
+const SHOPPINGS = [
+  // São Paulo
+  { id: 'sh01', city: 'São Paulo', area: 'Jardins', name: 'Shopping Iguatemi Paulista', kind: 'Mall premium', note: 'El mall más histórico y tradicional de SP, con boutiques internacionales y gastronomía de autor en pleno Jardins.', rating: '4.5', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh02', city: 'São Paulo', area: 'Itaim Bibi', name: 'JK Iguatemi', kind: 'Lujo · diseño', note: 'El mall más cool de SP: arquitectura espectacular, marcas exclusivas, terraza con vista al skyline y gastronomía top.', rating: '4.6', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh03', city: 'São Paulo', area: 'Jardins', name: 'Rua Oscar Freire', kind: 'Calle de moda', note: 'La calle comercial más exclusiva de Brasil: boutiques de diseñadores, cafés de autor y arquitectura de primera.', rating: '4.6', hours: 'Lun–Sáb 10:00–19:00 · Dom 12:00–17:00' },
+  { id: 'sh04', city: 'São Paulo', area: 'Morumbi', name: 'Shopping Cidade Jardim', kind: 'Lujo al aire libre', note: 'Mall de lujo open-air con más de 50 marcas exclusivas, jardines tropicales y restaurantes finos.', rating: '4.5', hours: 'Lun–Sáb 10:00–22:00 · Dom 14:00–20:00' },
+  { id: 'sh05', city: 'São Paulo', area: 'Higienópolis', name: 'Shopping Pátio Higienópolis', kind: 'Estilo de vida', note: 'Mall con personalidad en el barrio más europeo de SP, con gastronomía, librería y diseño de calidad.', rating: '4.4', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh06', city: 'São Paulo', area: 'Consolação', name: 'Shopping Frei Caneca', kind: 'Moda alternativa', note: 'Referente de la moda independiente y comunidad LGBT de SP, con marcas locales, cine y espectáculos.', rating: '4.3', hours: 'Lun–Sáb 10:00–22:00 · Dom 14:00–20:00' },
+  { id: 'sh07', city: 'São Paulo', area: 'Centro', name: 'Feira de Artesanato da Praça da República', kind: 'Feria · artesanías', note: 'Feria de artesanías, pinturas y joyería artesanal cada domingo en la plaza más clásica del Centro de SP.', rating: '4.5', hours: 'Dom 8:00–17:00' },
+  { id: 'sh08', city: 'São Paulo', area: 'Morumbi', name: 'Shopping Morumbi', kind: 'Mall completo', note: 'Uno de los mayores malls de SP con todas las marcas, buen nivel gastronómico y fácil acceso al sur.', rating: '4.3', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh09', city: 'São Paulo', area: 'Vila Madalena', name: 'Bazar da Vila Madalena', kind: 'Vintage · emergente', note: 'El barrio más cool de SP rebosa de bazares de ropa vintage, brocante y diseñadores emergentes en cada esquina.', rating: '4.5', hours: 'Mié–Lun 12:00–20:00 (variable por tienda)' },
+  { id: 'sh10', city: 'São Paulo', area: 'Brás', name: 'Brás — Polo de Moda Popular', kind: 'Moda a precio de fábrica', note: 'El mayor polo mayorista de moda de Latinoamérica: ropa de todo tipo directamente del fabricante.', rating: '4.2', hours: 'Lun–Sáb 8:00–18:00' },
+  // Rio de Janeiro
+  { id: 'sh11', city: 'Rio de Janeiro', area: 'Botafogo', name: 'Shopping Rio Sul', kind: 'Mall completo', note: 'El mall más completo y mejor ubicado de Río, a pasos del Pão de Açúcar y Botafogo, con toda clase de tiendas.', rating: '4.4', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh12', city: 'Rio de Janeiro', area: 'Barra da Tijuca', name: 'BarraShopping', kind: 'Mall más grande RJ', note: 'El mayor shopping de Río y uno de los más grandes de América Latina, con 700 tiendas y amplia gastronomía.', rating: '4.4', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh13', city: 'Rio de Janeiro', area: 'São Conrado', name: 'Fashion Mall', kind: 'Moda premium', note: 'Mall exclusivo rodeado de naturaleza en São Conrado, con las marcas más selectas de Río y gastronomía de nivel.', rating: '4.5', hours: 'Lun–Sáb 10:00–22:00 · Dom 14:00–21:00' },
+  { id: 'sh14', city: 'Rio de Janeiro', area: 'Leblon', name: 'Shopping Leblon', kind: 'Mall chic', note: 'El mall preferido por los cariocas de Leblon e Ipanema: marcas de calidad, gastronomía y ambiente relajado.', rating: '4.4', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh15', city: 'Rio de Janeiro', area: 'Barra da Tijuca', name: 'Village Mall', kind: 'Lujo · experiencia', note: 'Mall de alta gama en Barra da Tijuca frente al mar, con marcas de lujo y restaurantes con vista al océano.', rating: '4.4', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh16', city: 'Rio de Janeiro', area: 'Ipanema', name: 'Feira Hippie de Ipanema', kind: 'Feria · artesanías', note: 'La feria dominical más famosa de Río: artesanías, joyería, ropa y souvenirs únicos en la Praça General Osório.', rating: '4.5', hours: 'Dom 9:00–18:00' },
+  { id: 'sh17', city: 'Rio de Janeiro', area: 'Copacabana', name: 'Rua N. S. de Copacabana', kind: 'Calle comercial popular', note: 'La arteria comercial más democrática de Río: moda, calzado, electrónica y souvenirs a precios accesibles.', rating: '4.3', hours: 'Lun–Sáb 9:00–20:00' },
+  { id: 'sh18', city: 'Rio de Janeiro', area: 'Centro', name: 'Rua do Lavradio — Antigüedades', kind: 'Calle de anticuarios', note: 'La calle más bohemia del Centro: anticuarios con muebles coloniales, vinilos y objetos únicos de cada época.', rating: '4.5', hours: 'Lun–Vie 10:00–18:00 · Feria mensual sáb' },
+  { id: 'sh19', city: 'Rio de Janeiro', area: 'Gávea', name: 'Shopping da Gávea', kind: 'Diseño y arte', note: 'Mall boutique favorito de arquitectos y diseñadores cariocas, con galerías de arte y restaurantes de autor.', rating: '4.3', hours: 'Lun–Sáb 10:00–22:00 · Dom 13:00–21:00' },
+  { id: 'sh20', city: 'Rio de Janeiro', area: 'São Cristóvão', name: 'Feira de São Cristóvão', kind: 'Feria nordestina', note: 'La feria nordestina más grande del mundo: artesanías regionales, comida típica y música ao vivo los fines de semana.', rating: '4.5', hours: 'Lun–Vie 10:00–22:00 · Sáb–Dom 10:00–00:00' },
+];
+
+const MEALS = [
+  // ── São Paulo · Restaurantes ─────────────────────────────────
+  { id: 'me_r_sp01', name: 'D.O.M.', kind: 'Alta cocina brasileña', category: 'Restaurante', moment: 'Cena', area: 'Jardins', city: 'São Paulo', note: '2 estrellas Michelin de Alex Atala. Ingredientes amazónicos en preparaciones de técnica impecable. Reservar con semanas de anticipación.', rating: '4.7', price: 'R$$$$', booked: false, website: 'https://domrestaurante.com.br' },
+  { id: 'me_r_sp02', name: 'Mocotó', kind: 'Nordestina contemporánea', category: 'Restaurante', moment: 'Almuerzo', area: 'Vila Medeiros', city: 'São Paulo', note: 'Rodrigo Oliveira transformó la cozinha nordestina en referencia mundial. Repetidamente en el top 50 Best Restaurants South America.', rating: '4.7', price: 'R$$', booked: false, website: 'https://mocoto.com.br' },
+  { id: 'me_r_sp03', name: 'Figueira Rubaiyat', kind: 'Churrasco · fine dining', category: 'Restaurante', moment: 'Almuerzo', area: 'Jardins', city: 'São Paulo', note: 'Mesa icónica bajo una figueira centenaria. Cortes premium y carta brasileña de alta gama en un jardín único en la ciudad.', rating: '4.6', price: 'R$$$', booked: false, website: 'https://rubaiyat.com.br' },
+  { id: 'me_r_sp04', name: 'Corrutela', kind: 'Italiana · autoral', category: 'Restaurante', moment: 'Cena', area: 'Consolação', city: 'São Paulo', note: 'Pastas y risottos con ingredientes locales brasileños. Uno de los más aclamados por la prensa gastronómica paulistana.', rating: '4.6', price: 'R$$$', booked: false, website: null },
+  { id: 'me_r_sp05', name: 'Maní', kind: 'Alta cocina brasileña', category: 'Restaurante', moment: 'Cena', area: 'Jardins', city: 'São Paulo', note: '1 estrella Michelin de Helena Rizzo. Menú degustación que reinterpreta la gastronomía brasileña con técnica clásica francesa.', rating: '4.5', price: 'R$$$$', booked: false, website: 'https://manirestaurante.com.br' },
+  { id: 'me_r_sp06', name: 'Tordesilhas', kind: 'Cozinha brasileira', category: 'Restaurante', moment: 'Almuerzo', area: 'Consolação', city: 'São Paulo', note: 'Mara Salles lleva 30 años preservando recetas de todas las regiones de Brasil. Referencia obligada de la cocina nacional.', rating: '4.5', price: 'R$$$', booked: false, website: 'https://tordesilhas.com' },
+  { id: 'me_r_sp07', name: 'Spot', kind: 'Bistro paulistano', category: 'Restaurante', moment: 'Almuerzo', area: 'Jardins', city: 'São Paulo', note: 'Clásico de los Jardins desde 1991. Ambiente bohemio, carta amplia y presencia habitual de artistas e intelectuales de la ciudad.', rating: '4.5', price: 'R$$$', booked: false, website: 'https://restaurantespot.com.br' },
+  { id: 'me_r_sp08', name: 'Bráz Pizzaria', kind: 'Pizza paulistana', category: 'Restaurante', moment: 'Cena', area: 'Itaim Bibi', city: 'São Paulo', note: 'La pizza paulistana más celebrada. Borda finísima, forno a lenha e ingredientes selectos. Top 50 pizzas del mundo según CNN Travel.', rating: '4.5', price: 'R$$', booked: false, website: 'https://braz.com.br' },
+  { id: 'me_r_sp09', name: 'Carlota', kind: 'Contemporáneo · autoral', category: 'Restaurante', moment: 'Cena', area: 'Consolação', city: 'São Paulo', note: 'Carla Pernambuco crea una carta estacional de cocina contemporánea con raíces brasileñas. Premio ABAGA al mejor restaurante.', rating: '4.4', price: 'R$$$', booked: false, website: null },
+  { id: 'me_r_sp10', name: 'Cantaloup', kind: 'Mediterráneo · autoral', category: 'Restaurante', moment: 'Cena', area: 'Itaim Bibi', city: 'São Paulo', note: 'Fusión mediterránea con ingredientes brasileños. Ambiente sofisticado en Itaim Bibi, carta de vinos cuidada y postres premiados.', rating: '4.4', price: 'R$$$', booked: false, website: null },
+
+  // ── São Paulo · Cafés ─────────────────────────────────────────
+  { id: 'me_c_sp01', name: 'Coffee Lab', kind: 'Specialty · referencia mundial', category: 'Café', moment: 'Mañana', area: 'Vila Olímpia', city: 'São Paulo', note: 'De Isabela Raposeiras, figura internacional del café. Certificaciones mundiales, talleres y la mejor extracción de São Paulo.', rating: '4.7', price: 'R$', booked: false, website: 'https://coffeelab.com.br' },
+  { id: 'me_c_sp02', name: 'Lucca Cafés Especiais', kind: 'Specialty · tostado propio', category: 'Café', moment: 'Mañana', area: 'Jardins', city: 'São Paulo', note: 'Tostado en origen con selección de microlotes brasileños. Reconocido en múltiples rankings como mejor café de SP.', rating: '4.6', price: 'R$', booked: false, website: 'https://lucca.com.br' },
+  { id: 'me_c_sp03', name: 'Nomad Coffee', kind: 'Specialty · minimalista', category: 'Café', moment: 'Tarde', area: 'Jardins', city: 'São Paulo', note: 'Tercera ola minimalista en los Jardins. Métodos de filtrado y espresso de origen único en ambiente sereno.', rating: '4.6', price: 'R$', booked: false, website: null },
+  { id: 'me_c_sp04', name: 'Octávio Café', kind: 'Specialty · blend propio', category: 'Café', moment: 'Mañana', area: 'Consolação', city: 'São Paulo', note: 'Blend exclusivo de fazendas mineiras. Baristas campeones nacionales y carta completa de métodos alternativos.', rating: '4.6', price: 'R$', booked: false, website: 'https://octaviocafe.com.br' },
+  { id: 'me_c_sp05', name: 'Fazenda Futada', kind: 'Specialty · industrial', category: 'Café', moment: 'Tarde', area: 'Pinheiros', city: 'São Paulo', note: 'Tostadora propia en espacio industrial en Pinheiros. Cafés de terroir con notas frutales y florales destacadas.', rating: '4.5', price: 'R$', booked: false, website: 'https://fazendafutada.com.br' },
+  { id: 'me_c_sp06', name: 'Suplicy Cafés Especiais', kind: 'Specialty · pionero', category: 'Café', moment: 'Mañana', area: 'Jardins', city: 'São Paulo', note: 'Pionero de la especialidad en SP. Granos de cooperativas brasileñas, preparaciones cuidadas y ambiente muy amigable.', rating: '4.5', price: 'R$', booked: false, website: 'https://suplicycafes.com.br' },
+  { id: 'me_c_sp07', name: 'Santo Grão', kind: 'Specialty · brunch', category: 'Café', moment: 'Brunch', area: 'Jardins', city: 'São Paulo', note: 'Café en villa paulistana con jardín. Specialty y brunch con pães artesanais y frutas de estación. Ambiente relajado.', rating: '4.5', price: 'R$$', booked: false, website: 'https://santograo.com.br' },
+  { id: 'me_c_sp08', name: 'Deviant Coffee', kind: 'Specialty · baristas', category: 'Café', moment: 'Mañana', area: 'Vila Madalena', city: 'São Paulo', note: 'Baristas finalistas de campeonatos nacionales. Extracción precisa y ambiente acolhedor en Vila Madalena.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_c_sp09', name: 'Café Girondino', kind: 'Histórico · 1915', category: 'Café', moment: 'Mañana', area: 'Centro', city: 'São Paulo', note: 'El café más antiguo en funcionamiento de SP, abierto en 1915. Pastéis, quindins y cafezinho en el Centro histórico.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_c_sp10', name: 'Café Balaio IMS', kind: 'Specialty · cultural', category: 'Café', moment: 'Tarde', area: 'Ibirapuera', city: 'São Paulo', note: 'Dentro del Instituto Moreira Salles frente al Parque Ibirapuera. Vista verde, specialty de calidad y atmósfera cultural.', rating: '4.4', price: 'R$$', booked: false, website: null },
+
+  // ── São Paulo · Bares ─────────────────────────────────────────
+  { id: 'me_b_sp01', name: 'Sub Astor', kind: 'Cocktails · underground', category: 'Bar', moment: 'Noche', area: 'Vila Madalena', city: 'São Paulo', note: 'Bar subterráneo seleccionado entre los mejores del mundo por Drinks International. Menú de autor de Caio Galvão con ingredientes brasileños.', rating: '4.7', price: 'R$$$', booked: false, website: null },
+  { id: 'me_b_sp02', name: 'Guilhotina', kind: 'Cocktails · top 50 SA', category: 'Bar', moment: 'Noche', area: 'Pinheiros', city: 'São Paulo', note: 'Repetidamente en el top 50 Best Bars South America. Carta de temporada con ingredientes brasileños y técnicas contemporáneas.', rating: '4.6', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp03', name: 'Frank Bar', kind: 'Cocktails · hotel', category: 'Bar', moment: 'Noche', area: 'Itaim Bibi', city: 'São Paulo', note: 'En el Renaissance Hotel, referencia de la coctelería en SP. Mixología clásica con interpretaciones paulistanas.', rating: '4.6', price: 'R$$$', booked: false, website: null },
+  { id: 'me_b_sp04', name: 'Veloso Bar', kind: 'Boteco gourmet', category: 'Bar', moment: 'Tarde', area: 'Vila Mariana', city: 'São Paulo', note: 'El boteco que popularizó la caipirinha gourmet en São Paulo. Clásico de Vila Mariana con fila en fines de semana.', rating: '4.6', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp05', name: 'Bar Brahma', kind: 'Boteco histórico · 1948', category: 'Bar', moment: 'Tarde', area: 'Centro', city: 'São Paulo', note: 'Patrimonio vivo del Centro paulistano. Cerveza Brahma tirada, petiscos clásicos y presentaciones de samba y MPB.', rating: '4.5', price: 'R$$', booked: false, website: 'https://barbrahma.com.br' },
+  { id: 'me_b_sp06', name: 'Astor', kind: 'Bar literario · bohemio', category: 'Bar', moment: 'Tarde', area: 'Vila Madalena', city: 'São Paulo', note: 'Bar literario de Vila Madalena con 70 años de historia. Caipirinha artesanal y ambiente intelectual y bohemio.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp07', name: 'Filtrô Cervejaria', kind: 'Craft beer · 100 opções', category: 'Bar', moment: 'Tarde', area: 'Consolação', city: 'São Paulo', note: 'Más de 100 cervejas artesanais e importadas. Espacio industria chic ideal para conocer la escena craft paulistana.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp08', name: 'Piracaia', kind: 'Cervecería artesanal', category: 'Bar', moment: 'Tarde', area: 'Pinheiros', city: 'São Paulo', note: 'Cervecería artesanal con producción propia en Pinheiros. Chope fresco directo de tanque y petiscos de boteco.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp09', name: 'Bar da Dona Onça', kind: 'Boteco moderno', category: 'Bar', moment: 'Tarde', area: 'Centro', city: 'São Paulo', note: 'Bar de Janaína Torres en el Edifício Copan. Petiscos modernos y caipirinhas en el corazón del Centro histórico.', rating: '4.4', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_sp10', name: 'Número Bar', kind: 'Coctelería clásica', category: 'Bar', moment: 'Noche', area: 'Jardins', city: 'São Paulo', note: 'Coctelería clásica y jazz en ambiente elegante de los Jardins. Selección cuidada de whiskies, gin y vermuts.', rating: '4.4', price: 'R$$', booked: false, website: null },
+
+  // ── Rio de Janeiro · Restaurantes ────────────────────────────
+  { id: 'me_r_rj01', name: 'Lasai', kind: 'Alta cocina · jardín', category: 'Restaurante', moment: 'Cena', area: 'Botafogo', city: 'Rio de Janeiro', note: '2 estrellas Michelin de Rafael Costa e Silva. Menú degustación con hierbas del jardín propio. Top 50 Best Restaurants South America.', rating: '4.7', price: 'R$$$$', booked: false, website: 'https://lasai.com.br' },
+  { id: 'me_r_rj02', name: 'Olympe', kind: 'Francesa · carioca', category: 'Restaurante', moment: 'Cena', area: 'Lagoa', city: 'Rio de Janeiro', note: '1 estrella Michelin. Claude Troisgros lleva 30 años en Río fusionando la tradición clásica francesa con ingredientes amazónicos.', rating: '4.6', price: 'R$$$$', booked: false, website: 'https://restauranteolympe.com.br' },
+  { id: 'me_r_rj03', name: 'Oro', kind: 'Alta cocina · autoral', category: 'Restaurante', moment: 'Cena', area: 'Leblon', city: 'Rio de Janeiro', note: '1 estrella Michelin de Felipe Bronze. Arquitectura de sabores brasileños con técnica internacional. Bodega excepcional.', rating: '4.6', price: 'R$$$', booked: false, website: 'https://restauranteoro.com.br' },
+  { id: 'me_r_rj04', name: 'Aprazível', kind: 'Cozinha carioca · panorámica', category: 'Restaurante', moment: 'Cena', area: 'Santa Teresa', city: 'Rio de Janeiro', note: 'Vista al Centro Histórico desde una casa de Santa Teresa. Cozinha carioca de raíces nordestinas. Reserva imprescindible.', rating: '4.6', price: 'R$$$', booked: false, website: 'https://aprazivel.com.br' },
+  { id: 'me_r_rj05', name: 'CT Boucherie', kind: 'Carnes · bistro', category: 'Restaurante', moment: 'Almuerzo', area: 'Leblon', city: 'Rio de Janeiro', note: 'Versión casual de Claude Troisgros en Leblon. Cortes premium, hambúrgueres gourmet y las papas fritas más alabadas de Río.', rating: '4.5', price: 'R$$$', booked: false, website: 'https://ctboucherie.com.br' },
+  { id: 'me_r_rj06', name: 'Espirito Santa', kind: 'Nordestina · fusión', category: 'Restaurante', moment: 'Almuerzo', area: 'Santa Teresa', city: 'Rio de Janeiro', note: 'Recetas nordestinas reinterpretadas en Santa Teresa. Moqueca de banana da terra y cocadas caseras imprescindibles.', rating: '4.5', price: 'R$$', booked: false, website: 'https://espiritosanta.com.br' },
+  { id: 'me_r_rj07', name: 'Confeitaria Colombo', kind: 'Histórico · Art Nouveau', category: 'Restaurante', moment: 'Almuerzo', area: 'Centro', city: 'Rio de Janeiro', note: 'Almuerzo ejecutivo en el palacio Art Nouveau más bello de Río, abierto en 1894. Experiencia gastronómica e histórica única.', rating: '4.5', price: 'R$$', booked: false, website: 'https://confeitariacolombo.com.br' },
+  { id: 'me_r_rj08', name: "Galeto Sat's", kind: 'Galeto · carioca clásico', category: 'Restaurante', moment: 'Cena', area: 'Copacabana', city: 'Rio de Janeiro', note: 'Institución carioca desde 1957. El galeto (pollo joven asado) más famoso de Río con sus acompañamientos de siempre.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_r_rj09', name: 'Satyricon', kind: 'Mariscos · fusión carioca', category: 'Restaurante', moment: 'Almuerzo', area: 'Ipanema', city: 'Rio de Janeiro', note: 'La fusión ítalo-japonesa-carioca más celebrada de Río. Sashimis en leche de tigre y mariscos frescos de la bahía de Guanabara.', rating: '4.5', price: 'R$$$', booked: false, website: null },
+  { id: 'me_r_rj10', name: 'Brasserie Rosário', kind: 'Brasserie · colonial', category: 'Restaurante', moment: 'Almuerzo', area: 'Centro', city: 'Rio de Janeiro', note: 'En un sobrado del siglo XIX en la Lapa. Mariscos, carnes y carta francesa en un entorno colonial completamente restaurado.', rating: '4.4', price: 'R$$$', booked: false, website: null },
+
+  // ── Rio de Janeiro · Cafés ────────────────────────────────────
+  { id: 'me_c_rj01', name: 'Café do Alto', kind: 'Specialty · vista panorámica', category: 'Café', moment: 'Mañana', area: 'Santa Teresa', city: 'Rio de Janeiro', note: 'Vista privilegiada al Centro Histórico desde las alturas de Santa Teresa. Specialty y pão de queijo casero en ambiente artístico.', rating: '4.7', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj02', name: 'Pão com Manteiga', kind: 'Specialty · brunch', category: 'Café', moment: 'Brunch', area: 'Santa Teresa', city: 'Rio de Janeiro', note: 'El brunch de Santa Teresa. Specialty, torradas artesanais y ambiente de casarão colonial. Favorito de la colonia creativa carioca.', rating: '4.6', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj03', name: 'Buna Coffee', kind: 'Specialty · origen etíope', category: 'Café', moment: 'Tarde', area: 'Ipanema', city: 'Rio de Janeiro', note: 'Specialty de origen etíope (buna = café en amhárico). Métodos de filtrado alternativos en pleno corazón de Ipanema.', rating: '4.6', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj04', name: 'O Café', kind: 'Specialty · third wave', category: 'Café', moment: 'Mañana', area: 'Botafogo', city: 'Rio de Janeiro', note: 'Specialty de tercera ola en Botafogo. Blend de fazendas de MG y BA con notas frutales y florales. Pastelería de autor.', rating: '4.6', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj05', name: 'Confeitaria Colombo', kind: 'Histórico · cafezinho', category: 'Café', moment: 'Tarde', area: 'Centro', city: 'Rio de Janeiro', note: 'El cafezinho más famoso de Río en el salón Art Nouveau de 1894. Pão de queijo, brigadeiros y bolos caseiros inigualables.', rating: '4.5', price: 'R$$', booked: false, website: 'https://confeitariacolombo.com.br' },
+  { id: 'me_c_rj06', name: 'Sobrado', kind: 'Specialty · casarão', category: 'Café', moment: 'Tarde', area: 'Humaitá', city: 'Rio de Janeiro', note: 'Specialty en una casona histórica de Humaitá. Ambiente tranquilo, métodos cuidados y bolo de cenoura casero imperdible.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj07', name: 'Cafécafé', kind: 'Specialty · jardín', category: 'Café', moment: 'Tarde', area: 'Gávea', city: 'Rio de Janeiro', note: 'Specialty en casa con jardín en la Gávea. Tortas de frutas tropicales y cafés filtrados de distintas regiones de Brasil.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj08', name: 'Café Pausa', kind: 'Specialty · Leblon', category: 'Café', moment: 'Mañana', area: 'Leblon', city: 'Rio de Janeiro', note: 'La pausa favorita del Leblon. Specialty con pastelería artesanal, croissants de mantequilla y ambiente íntimo y cálido.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj09', name: 'Pastelaria Versailles', kind: 'Tradicional · 1922', category: 'Café', moment: 'Tarde', area: 'Leblon', city: 'Rio de Janeiro', note: 'Pastelería carioca clásica de 1922. Bolos recheados, tortas de frutas y cafezinho tradicional. Patrimonio del Leblon.', rating: '4.4', price: 'R$', booked: false, website: null },
+  { id: 'me_c_rj10', name: 'Trocadero', kind: 'Café · vista al mar', category: 'Café', moment: 'Tarde', area: 'Copacabana', city: 'Rio de Janeiro', note: 'Café en el histórico Belmond Copacabana Palace con vista al mar. Pães de queijo y confituras artesanales en ambiente elegante.', rating: '4.4', price: 'R$$', booked: false, website: null },
+
+  // ── Rio de Janeiro · Bares ────────────────────────────────────
+  { id: 'me_b_rj01', name: 'Bar Astor', kind: 'Cocktails · premiado', category: 'Bar', moment: 'Noche', area: 'Ipanema', city: 'Rio de Janeiro', note: 'En lista de mejores bares de South America. Cocktails de autor y la caipirinha de maracuyá más celebrada de Río de Janeiro.', rating: '4.6', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_rj02', name: 'Jobi', kind: 'Boteco histórico · 1956', category: 'Bar', moment: 'Tarde', area: 'Leblon', city: 'Rio de Janeiro', note: 'El boteco más querido del Leblon desde 1956. Chope gelado, bolinho de bacalhau y ambiente descontracturado carioca.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_b_rj03', name: 'Bracarense', kind: 'Boteco · referencia carioca', category: 'Bar', moment: 'Tarde', area: 'Leblon', city: 'Rio de Janeiro', note: 'La referencia del boteco carioca. Filé de frango com alho, batata frita e chope gelado: la combinación perfecta del Leblon.', rating: '4.5', price: 'R$', booked: false, website: null },
+  { id: 'me_b_rj04', name: 'Cais do Oriente', kind: 'Coctelería · art déco', category: 'Bar', moment: 'Noche', area: 'Centro', city: 'Rio de Janeiro', note: 'Galpón colonial restaurado en el Porto Maravilha. Coctelería de autor bajo bóvedas art déco con samba ao vivo los fines de semana.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_rj05', name: 'Empório Santa Maria', kind: 'Craft beer · Lagoa', category: 'Bar', moment: 'Tarde', area: 'Lagoa', city: 'Rio de Janeiro', note: 'Craft beer y vinos naturales con vista a la Lagoa Rodrigo de Freitas. El spot ideal para el atardecer carioca.', rating: '4.5', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_rj06', name: 'Bar Luiz', kind: 'Bar alemán · 1887', category: 'Bar', moment: 'Tarde', area: 'Centro', city: 'Rio de Janeiro', note: 'El bar más antiguo en funcionamiento de Río, desde 1887. Chopp, linguiça e chucrute alemán en el corazón del Centro histórico.', rating: '4.4', price: 'R$$', booked: false, website: null },
+  { id: 'me_b_rj07', name: 'Academia da Cachaça', kind: 'Cachacería · 700 variedades', category: 'Bar', moment: 'Noche', area: 'Leblon', city: 'Rio de Janeiro', note: '700 tipos de cachaça artesanal y caipirinhas de autor. La mejor forma de conocer la destilería nacional brasileña.', rating: '4.4', price: 'R$$', booked: false, website: 'https://academiadacachaca.com.br' },
+  { id: 'me_b_rj08', name: 'Belmonte', kind: 'Boteco · chope + pastéis', category: 'Bar', moment: 'Tarde', area: 'Flamengo', city: 'Rio de Janeiro', note: 'Cadena icónica de botecos cariocas. Pastel frito crujiente y chope gelado en múltiples locales por toda la ciudad.', rating: '4.4', price: 'R$', booked: false, website: null },
+  { id: 'me_b_rj09', name: 'Devassa', kind: 'Cervecería carioca', category: 'Bar', moment: 'Tarde', area: 'Ipanema', city: 'Rio de Janeiro', note: 'Cervecería carioca clásica con chopes propios. Ambiente animado en Ipanema, petiscos generosos y música ao vivo.', rating: '4.4', price: 'R$', booked: false, website: 'https://devassa.com.br' },
+  { id: 'me_b_rj10', name: 'Boteco Belmiro', kind: 'Boteco bohemio · Santa Teresa', category: 'Bar', moment: 'Noche', area: 'Santa Teresa', city: 'Rio de Janeiro', note: 'El boteco bohemio de Santa Teresa. Samba ao vivo, cerveja gelada y ambiente artístico del barrio más creativo de Río.', rating: '4.4', price: 'R$', booked: false, website: null },
+];
+
+const SECTIONS = [
+  { id: 'vuelos', label: 'Vuelos', count: FLIGHTS.length, span: '09 jul · 13 jul · 19 jul', meta: 'GOL · 3 tramos directos', color: '#0E6B70' },
+  { id: 'alojamientos', label: 'Alojamientos', count: STAYS.length, span: '08 – 20 jul', meta: '12 noches · 3 ciudades', color: '#D81B60' },
+  { id: 'actividades', label: 'Actividades', count: ACTIVITIES.length, span: 'SP · RJ', meta: '20 por ciudad', color: '#F0C030' },
+  { id: 'museos', label: 'Museos', count: MUSEUMS.length, span: 'SP · RJ', meta: '10 por ciudad', color: '#2A5298' },
+  { id: 'shoppings', label: 'Shoppings', count: SHOPPINGS.length, span: 'SP · RJ', meta: '10 por ciudad', color: '#9B59B6' },
+  { id: 'comidas', label: 'Comidas', count: MEALS.length, span: 'SP · RJ', meta: '10 por categoría · 2 ciudades', color: '#E8602C' },
+  { id: 'clima',   label: 'Clima',  count: 14, span: 'Posadas · Foz · SP · RJ', meta: 'Pronóstico 14 días', color: '#0891B2' },
+];
+
+// ─── Countdown ────────────────────────────────────────────────
+function getDaysUntil(dateStr) {
+  const [day, month, year] = dateStr.split('.');
+  const target = new Date(Number(year), Number(month) - 1, Number(day));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+// ─── Atoms ────────────────────────────────────────────────────
+const Mono = ({ children, style }) => (
+  <span style={{ fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 600, fontVariantNumeric: 'tabular-nums', ...style }}>
+    {children}
+  </span>
+);
+
+const Serif = ({ children, style }) => (
+  <span style={{ fontFamily: '"Playfair Display", "Times New Roman", serif', fontWeight: 700, letterSpacing: '-0.02em', ...style }}>
+    {children}
+  </span>
+);
+
+const Divider = ({ T, style }) => <div style={{ height: 1, background: fade(T, 0.08), ...style }} />;
+
+const Dot = ({ color = 'currentColor', size = 6 }) => (
+  <span style={{ display: 'inline-block', width: size, height: size, borderRadius: 99, background: color, verticalAlign: 'middle' }} />
+);
+
+// ─── Alines Bar ───────────────────────────────────────────────
+const ALINES_COLORS = [{ c: '#F0C030', w: 48 }, { c: '#D81B60', w: 36 }, { c: '#0E6B70', w: 32 }, { c: '#E8602C', w: 36 }];
+function AlinesBar({ scale = 1, style }) {
+  return (
+    <div style={{ display: 'flex', gap: 6 * scale, ...style }}>
+      {ALINES_COLORS.map((b, i) => (
+        <span key={i} style={{ height: 3 * scale, width: b.w * scale, borderRadius: 2, background: b.c }} />
+      ))}
+    </div>
+  );
+}
+
+// ─── Decorative dots ──────────────────────────────────────────
+function DecoDots({ T }) {
+  const dotStyle = (color, size, top, left, right) => ({
+    position: 'absolute', width: size, height: size, borderRadius: 99,
+    background: color, opacity: T.dark ? 0.55 : 0.7,
+    top, left, right, pointerEvents: 'none',
+  });
+  return (
+    <React.Fragment>
+      <span style={dotStyle('#F0C030', 12, 24, 'auto', 90)} />
+      <span style={dotStyle('#D81B60', 16, 110, 'auto', 18)} />
+      <span style={dotStyle('#E8602C', 10, 200, 16, 'auto')} />
+    </React.Fragment>
+  );
+}
+
+// ─── Status pill ──────────────────────────────────────────────
+const StatusPill = ({ children, tone = 'neutral', accent, T, href }) => {
+  const tealFg = T.dark ? '#7fc8cb' : '#0E6B70';
+  const tealBg = T.dark ? 'rgba(127,200,203,0.14)' : 'rgba(14,107,112,0.10)';
+  const warnFg = T.dark ? '#f2b785' : '#A14619';
+  const warnBg = T.dark ? 'rgba(232,150,98,0.14)' : 'rgba(232,96,44,0.12)';
+  const tones = {
+    ok: { bg: tealBg, fg: tealFg, dot: tealFg },
+    warn: { bg: warnBg, fg: warnFg, dot: warnFg },
+    accent: { bg: `${accent}1f`, fg: accent, dot: accent },
+    neutral: { bg: fade(T, 0.06), fg: fade(T, 0.7), dot: fade(T, 0.72) },
+  }[tone];
+  const baseStyle = {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '4px 8px 4px 7px', borderRadius: 99,
+    background: tones.bg, color: tones.fg,
+    fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 10,
+    letterSpacing: '0.06em', textTransform: 'uppercase',
+    whiteSpace: 'nowrap', textDecoration: 'none',
+  };
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ ...baseStyle, cursor: 'pointer' }}>
+        <Dot color={tones.dot} size={5} />{children}<span style={{ marginLeft: 2, opacity: 0.6 }}>↗</span>
+      </a>
+    );
+  }
+  return <span style={baseStyle}><Dot color={tones.dot} size={5} />{children}</span>;
+};
+
+// ─── Section caption ──────────────────────────────────────────
+function SectionCaption({ index, total, title, hint, T, accent }) {
+  return (
+    <div style={{ padding: '6px 22px 14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', color: accent, fontSize: 11, fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+        <span>{String(index).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
+        <span style={{ color: fade(T, 0.72), letterSpacing: '0.12em' }}>{hint}</span>
+      </div>
+      <Serif style={{ fontSize: 38, lineHeight: 1, color: T.fg, display: 'block', fontStyle: 'italic' }}>{title}</Serif>
+      <AlinesBar style={{ marginTop: 14 }} />
+    </div>
+  );
+}
+
+// ─── Hero ─────────────────────────────────────────────────────
+function Hero({ accent, T, onToggleDark }) {
+  const daysLeft = getDaysUntil(`${TRIP.dateStart.split('.')[0]}.${TRIP.dateStart.split('.')[1]}.${TRIP.year}`);
+  return (
+    <div style={{ padding: '28px 22px 24px', position: 'relative', overflow: 'hidden' }}>
+      <DecoDots T={T} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, position: 'relative', zIndex: 1 }}>
+        <Mono style={{ fontSize: 11, color: accent, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700 }}>
+          Itinerario 2026 / 07
+        </Mono>
+        <button
+          onClick={onToggleDark}
+          aria-label={T.dark ? 'Activar modo claro' : 'Activar modo oscuro'}
+          style={{ width: 30, height: 30, borderRadius: 99, border: `1px solid ${fade(T, 0.18)}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: fade(T, 0.75), padding: 0, transition: 'border-color .2s ease, background .2s ease, color .2s ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = fade(T, 0.18); e.currentTarget.style.color = fade(T, 0.75); }}
+        >
+          {T.dark ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+          )}
+        </button>
+      </div>
+
+      <Serif style={{ marginTop: 8, fontSize: 92, lineHeight: 0.95, color: T.fg, letterSpacing: '-0.025em', display: 'block', fontStyle: 'italic', position: 'relative', zIndex: 1 }}>
+        {TRIP.city}
+      </Serif>
+
+      <AlinesBar style={{ marginTop: 16, position: 'relative', zIndex: 1 }} />
+
+      <div style={{ marginTop: 18, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <Mono style={{ fontSize: 13, color: T.fg }}>
+          {TRIP.dateStart}
+          <span style={{ color: fade(T, 0.6), margin: '0 8px' }}>→</span>
+          {TRIP.dateEnd}
+          <span style={{ color: fade(T, 0.6), marginLeft: 8 }}>· {TRIP.year}</span>
+        </Mono>
+        <Mono style={{ fontSize: 10, color: accent, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          {daysLeft > 0 ? `T-${daysLeft} días` : daysLeft === 0 ? '¡Hoy!' : '¡De viaje!'}
+        </Mono>
+      </div>
+
+      <div style={{ marginTop: 22, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', borderTop: `1px solid ${fade(T, 0.1)}`, borderBottom: `1px solid ${fade(T, 0.1)}` }}>
+        {[['Días', TRIP.days], ['Viajeros', TRIP.travelers]].map(([k, v], i) => (
+          <div key={k} style={{ padding: '12px 0', textAlign: i === 0 ? 'left' : 'right' }}>
+            <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>{k}</Mono>
+            <Serif style={{ fontSize: 22, color: T.fg }}>{v}</Serif>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Section list (dashboard) ─────────────────────────────────
+function SectionList({ onOpen, accent, T }) {
+  return (
+    <div style={{ padding: '4px 0 0' }}>
+      <div style={{ padding: '0 22px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.6), letterSpacing: '0.12em', textTransform: 'uppercase' }}>Secciones</Mono>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.6), letterSpacing: '0.1em' }}>{SECTIONS.length} ítems</Mono>
+      </div>
+      <div style={{ borderTop: `1px solid ${fade(T, 0.1)}` }}>
+        {SECTIONS.map((s, i) => (
+          <button
+            key={s.id}
+            onClick={() => onOpen(s.id)}
+            style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'transparent', border: 'none', borderBottom: `1px solid ${fade(T, 0.1)}`, padding: '20px 22px 20px', display: 'flex', alignItems: 'center', gap: 14, color: T.fg, fontFamily: 'inherit', transition: 'background .15s ease, transform .15s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = fade(T, 0.04); e.currentTarget.style.transform = 'translateX(3px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'none'; }}
+          >
+            <span style={{ width: 4, height: 38, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+            <Mono style={{ fontSize: 11, color: fade(T, 0.6), letterSpacing: '0.08em', width: 24, flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</Mono>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Serif style={{ display: 'block', fontSize: 30, color: T.fg, lineHeight: 1, letterSpacing: '-0.015em', fontStyle: 'italic' }}>{s.label}</Serif>
+              <Mono style={{ display: 'block', marginTop: 8, fontSize: 10, color: fade(T, 0.72), letterSpacing: '0.06em' }}>
+                {s.span} <span style={{ color: fade(T, 0.25), margin: '0 6px' }}>·</span> {s.meta}
+              </Mono>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              <Mono style={{ fontSize: 11, color: s.color, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{String(s.count).padStart(2, '0')}</Mono>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fade(T, 0.65)} strokeWidth="1.5"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Top bar ──────────────────────────────────────────────────
+function SectionTopBar({ onBack, accent, T, current }) {
+  const idx = SECTIONS.findIndex(s => s.id === current);
+  return (
+    <div style={{ padding: '24px 14px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', border: 'none', cursor: 'pointer', color: T.fg, padding: '6px 8px', fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M19 12H5M11 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Volver
+      </button>
+      <Mono style={{ fontSize: 10, color: fade(T, 0.6), letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+        {TRIP.city} · § {String(idx + 1).padStart(2, '0')}
+      </Mono>
+    </div>
+  );
+}
+
+// ─── Brand icon via Simple Icons CDN ─────────────────────────
+function BrandIcon({ slug, color, size = 13 }) {
+  return (
+    <img
+      src={`https://cdn.simpleicons.org/${slug}/${color.replace('#', '')}`}
+      width={size} height={size}
+      alt={slug}
+      style={{ display: 'block', flexShrink: 0 }}
+    />
+  );
+}
+
+// ─── Transport actions ────────────────────────────────────────
+function TransportActions({ query, T, accent, airbnbUrl, mapsUrl, bookingUrl }) {
+  const enc = encodeURIComponent(query);
+  const maps = mapsUrl || `https://www.google.com/maps/search/?api=1&query=${enc}`;
+  const uber = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff%5Bformatted_address%5D=${enc}`;
+  const cabify = `https://cabify.com/es/cities?destination=${enc}`;
+
+  const Chip = ({ href, label, icon, color }) => (
+    <a
+      href={href} target="_blank" rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 8px', borderRadius: 10, border: `1px solid ${fade(T, 0.14)}`, background: 'transparent', color: T.fg, textDecoration: 'none', fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'border-color .15s ease, background .15s ease' }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = `${color}1f`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = fade(T, 0.14); e.currentTarget.style.background = 'transparent'; }}
+    >
+      {icon}<span>{label}</span>
+    </a>
+  );
+
+  const uberColor = T.dark ? 'ffffff' : '000000';
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <Mono style={{ fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em' }}>Cómo llegar</Mono>
+        <Mono style={{ fontSize: 9, color: fade(T, 0.3), letterSpacing: '0.04em' }}>{query.length > 28 ? query.slice(0, 28) + '…' : query}</Mono>
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <Chip href={maps} label="Maps" color="#4285F4"
+          icon={<BrandIcon slug="googlemaps" color="4285F4" />} />
+        <Chip href={uber} label="Uber" color={T.dark ? '#fff' : '#000'}
+          icon={<BrandIcon slug="uber" color={uberColor} />} />
+        <Chip href={cabify} label="Cabify" color="#9B59B6"
+          icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="#9B59B6"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.2 17.4c-3 0-5.4-2.4-5.4-5.4s2.4-5.4 5.4-5.4c1.35 0 2.58.5 3.51 1.32l-1.62 1.62a3.06 3.06 0 10.42 4.44l1.62 1.62A5.34 5.34 0 0110.8 17.4z"/></svg>} />
+        {airbnbUrl && (
+          <Chip href={airbnbUrl} label="Airbnb" color="#FF5A5F"
+            icon={<BrandIcon slug="airbnb" color="FF5A5F" />} />
+        )}
+        {bookingUrl && (
+          <Chip href={bookingUrl} label="Booking" color="#003580"
+            icon={<BrandIcon slug="bookingdotcom" color="003580" />} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Card shell ───────────────────────────────────────────────
+function FadeIn({ children, delay = 0 }) {
+  const ref = React.useRef(null);
+  const [vis, setVis] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVis(true); obs.unobserve(el); } },
+      { threshold: 0.05, rootMargin: '0px 0px -16px 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{ opacity: vis ? 1 : 0, transform: vis ? 'translateY(0)' : 'translateY(12px)', transition: `opacity 0.38s ease ${delay}ms, transform 0.38s ease ${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
+function Card({ children, onClick, expanded, accent, T }) {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        margin: '0 16px 10px', background: T.cardBg,
+        border: `1px solid ${expanded ? `${accent}88` : hovered ? `${accent}44` : fade(T, 0.08)}`,
+        borderRadius: 12, padding: '18px 18px 16px', cursor: 'pointer',
+        boxShadow: expanded ? `0 8px 24px ${fade(T, 0.1)}` : hovered ? `0 4px 16px ${fade(T, 0.07)}` : `0 1px 8px ${fade(T, 0.04)}`,
+        transform: hovered && !expanded ? 'translateY(-2px)' : 'none',
+        transition: 'border-color .18s ease, box-shadow .18s ease, transform .18s ease',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Flight status hook ───────────────────────────────────────
+const RAPIDAPI_KEY = '946fd9d12emshf418dd7e5b9640bp1e42d9jsnde9231ca503b';
+
+const FLIGHT_STATUS_LABELS = {
+  Expected:  { label: 'Programado', tone: 'neutral' },
+  EnRoute:   { label: 'En vuelo',   tone: 'accent'  },
+  Landed:    { label: 'Aterrizado', tone: 'ok'      },
+  Cancelled: { label: 'Cancelado',  tone: 'warn'    },
+  Delayed:   { label: 'Demorado',   tone: 'warn'    },
+};
+
+function fetchFlightStatus(f) {
+  return fetch(
+    `https://aerodatabox.p.rapidapi.com/flights/Number/${f.flightNumber}/${f.isoDate}`,
+    { headers: { 'x-rapidapi-host': 'aerodatabox.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY } }
+  )
+    .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e?.message || `HTTP ${r.status}`)))
+    .then(json => ({ id: f.id, data: Array.isArray(json) ? json[0] : null, error: null }))
+    .catch(err  => ({ id: f.id, data: null, error: String(err) }));
+}
+
+function localTime(isoStr) {
+  if (!isoStr) return null;
+  const match = isoStr.match(/(\d{2}:\d{2})[-+]/);
+  return match ? match[1] : null;
+}
+
+// ─── Refresh button ───────────────────────────────────────────
+function RefreshBtn({ onRefresh, T, accent }) {
+  const [btnState, setBtnState] = useState('idle'); // idle | loading | done
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (btnState !== 'idle') return;
+    setBtnState('loading');
+    onRefresh().then(() => {
+      setBtnState('done');
+      setTimeout(() => setBtnState('idle'), 2200);
+    });
+  };
+
+  const tealFg = T.dark ? '#7fc8cb' : '#0E6B70';
+  const color  = btnState === 'done' ? tealFg : fade(T, btnState === 'loading' ? 0.25 : 0.45);
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={btnState !== 'idle'}
+      title="Actualizar estado"
+      style={{
+        width: 26, height: 26, borderRadius: 99, border: `1px solid ${fade(T, 0.12)}`,
+        background: btnState === 'done' ? `${tealFg}18` : 'transparent',
+        cursor: btnState === 'idle' ? 'pointer' : 'default',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 0, color, flexShrink: 0,
+        transition: 'border-color .2s, background .2s, color .2s',
+      }}
+    >
+      {btnState === 'done' ? (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      ) : (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={btnState === 'loading' ? { animation: 'spin .8s linear infinite' } : {}}>
+          <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/>
+        </svg>
+      )}
+    </button>
+  );
+}
+
+// ─── Flight card ──────────────────────────────────────────────
+function FlightCard({ f, liveStatus, onRefresh, accent, expanded, onToggle, T }) {
+  const loading = !liveStatus;
+  const live    = liveStatus?.data  ?? null;
+  const error   = liveStatus?.error ?? null;
+
+  const statusInfo = live ? (FLIGHT_STATUS_LABELS[live.status] || { label: live.status, tone: 'neutral' }) : null;
+
+  const depTime     = live ? (localTime(live.departure?.actualTime?.local) || localTime(live.departure?.scheduledTime?.local) || f.dep.time) : f.dep.time;
+  const arrTime     = live ? (localTime(live.arrival?.actualTime?.local)   || localTime(live.arrival?.predictedTime?.local)   || localTime(live.arrival?.scheduledTime?.local) || f.arr.time) : f.arr.time;
+  const arrSchedTime = live ? localTime(live.arrival?.scheduledTime?.local) : null;
+  const isDelayed   = arrSchedTime && arrTime !== arrSchedTime;
+
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em' }}>{f.leg} · {f.code}</Mono>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {loading ? (
+            <Mono style={{ fontSize: 10, color: fade(T, 0.3), letterSpacing: '0.06em' }}>···</Mono>
+          ) : error || !live ? (
+            <StatusPill tone="neutral" T={T} accent={accent}>Sin info aún</StatusPill>
+          ) : (
+            <StatusPill tone={statusInfo.tone} T={T} accent={accent}>{statusInfo.label}</StatusPill>
+          )}
+          <RefreshBtn onRefresh={onRefresh} T={T} accent={accent} />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12 }}>
+        <div>
+          <Serif style={{ fontSize: 30, color: T.fg, lineHeight: 1 }}>{f.dep.code}</Serif>
+          <Mono style={{ display: 'block', fontSize: 11, color: T.fg, marginTop: 6 }}>{depTime}</Mono>
+          <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.35), marginTop: 2 }}>{f.dep.date}</Mono>
+        </div>
+        <div style={{ position: 'relative', height: 1, background: fade(T, 0.18) }}>
+          <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', background: T.bg, padding: '0 6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.6"><path d="M2 12l20-9-9 20-2-9-9-2z" /></svg>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <Serif style={{ fontSize: 30, color: T.fg, lineHeight: 1 }}>{f.arr.code}</Serif>
+          <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 5 }}>
+            <Mono style={{ fontSize: 11, color: isDelayed ? '#E8602C' : T.fg }}>{arrTime}</Mono>
+            {isDelayed && <Mono style={{ fontSize: 9, color: fade(T, 0.35), textDecoration: 'line-through' }}>{arrSchedTime}</Mono>}
+          </div>
+          <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.35), marginTop: 2 }}>{f.arr.date}</Mono>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <img src={`https://www.gstatic.com/flights/airline_logos/70px/${f.code.split(' ')[0]}.png`} alt={f.airline} width="18" height="18" style={{ borderRadius: 4, objectFit: 'contain', background: '#fff', padding: 1 }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          <Mono style={{ fontSize: 10, color: fade(T, 0.75) }}>{f.airline}</Mono>
+        </div>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.75) }}>{f.stops} · {f.duration}</Mono>
+      </div>
+
+      {expanded && (
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          {[
+            ['Cabina',      f.cabin],
+            ['Pasajeros',   f.pax],
+            ['Localizador', f.locator],
+            live?.aircraft?.model          ? ['Aeronave',  live.aircraft.model]                     : null,
+            live?.arrival?.terminal        ? ['Terminal',  `Terminal ${live.arrival.terminal}`]      : null,
+            live?.departure?.terminal      ? ['Terminal salida', `Terminal ${live.departure.terminal}`] : null,
+          ].filter(Boolean).map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
+              <Mono style={{ fontSize: 10, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.1em' }}>{k}</Mono>
+              <Mono style={{ fontSize: 11, color: T.fg }}>{v}</Mono>
+            </div>
+          ))}
+          <TransportActions query={`Aeropuerto ${f.dep.city} ${f.dep.code}`} T={T} accent={accent} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Stay card ────────────────────────────────────────────────
+function StayCard({ s, expanded, onToggle, accent, T }) {
+  const statusTone = s.status === 'Confirmado' ? 'ok' : s.status === 'TBD' ? 'neutral' : 'warn';
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+        <div style={{ flex: 1 }}>
+          <Mono style={{ display: 'block', fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{s.type}</Mono>
+          <Serif style={{ fontSize: 26, color: T.fg, lineHeight: 1.05, display: 'block', letterSpacing: '-0.01em' }}>{s.name}</Serif>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 14, marginTop: 16, alignItems: 'center' }}>
+        <div>
+          <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.1em' }}>Check-in</Mono>
+          <Mono style={{ display: 'block', fontSize: 13, color: T.fg, marginTop: 3 }}>{s.checkIn}</Mono>
+          {s.checkInTime && <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.75), marginTop: 2 }}>{s.checkInTime}</Mono>}
+        </div>
+        <div style={{ flex: 1, position: 'relative', textAlign: 'center' }}>
+          <div style={{ height: 1, background: fade(T, 0.12) }} />
+          <Mono style={{ position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)', background: T.bg, padding: '0 8px', fontSize: 9, color: fade(T, 0.72), letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.nights} {s.nights === 1 ? 'noche' : 'noches'}</Mono>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.1em' }}>Check-out</Mono>
+          <Mono style={{ display: 'block', fontSize: 13, color: T.fg, marginTop: 3 }}>{s.checkOut}</Mono>
+          {s.checkOutTime && <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.75), marginTop: 2 }}>{s.checkOutTime}</Mono>}
+        </div>
+      </div>
+      <div style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, display: 'flex', justifyContent: 'space-between' }}>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.75) }}>{s.address}</Mono>
+        <StatusPill tone={statusTone} T={T} accent={accent}>{s.status}</StatusPill>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          {s.tbd && (
+            <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.72), lineHeight: 1.5, marginBottom: 10, fontStyle: 'italic' }}>
+              Alojamiento por confirmar — en proceso de búsqueda.
+            </Mono>
+          )}
+          <TransportActions query={s.address} T={T} accent={accent} airbnbUrl={s.airbnb} mapsUrl={s.mapsUrl} bookingUrl={s.booking} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Activity row ──────────────────────────────────────────────
+function CityGroupHeader({ city, acts, T, accent }) {
+  const mapsUrl = 'https://www.google.com/maps/dir/' +
+    acts.map(a => encodeURIComponent(`${a.name}, ${a.area}, Brasil`)).join('/');
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '22px 0 10px', padding: '0 2px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 3, height: 20, background: accent, borderRadius: 2, flexShrink: 0 }} />
+        <Serif style={{ fontSize: 20, color: T.fg, lineHeight: 1 }}>{city}</Serif>
+        <Mono style={{ fontSize: 10, color: fade(T, 0.6) }}>{acts.length} lugares</Mono>
+      </div>
+      <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: `1px solid rgba(66,133,244,0.2)`, background: `rgba(66,133,244,0.06)`, color: '#4285F4', textDecoration: 'none', fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}
+        onClick={e => e.stopPropagation()}>
+        <BrandIcon slug="googlemaps" color="4285F4" size={12} />
+        Ver todos en Maps
+      </a>
+    </div>
+  );
+}
+
+function ActivityRow({ a, expanded, onToggle, accent, T }) {
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Mono style={{ display: 'block', fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{a.kind} · {a.area}</Mono>
+          <Serif style={{ fontSize: 22, color: T.fg, lineHeight: 1.1, display: 'block', letterSpacing: '-0.01em' }}>{a.name}</Serif>
+        </div>
+        {a.rating && (
+          <Mono style={{ flexShrink: 0, fontSize: 13, fontWeight: 800, color: accent }}>★ {a.rating}</Mono>
+        )}
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.7), lineHeight: 1.5, marginBottom: 12 }}>{a.note}</Mono>
+          {a.hours && (
+            <div style={{ marginBottom: 12 }}>
+              <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Horario de apertura</Mono>
+              <Mono style={{ fontSize: 11, color: T.fg, lineHeight: 1.5 }}>{a.hours}</Mono>
+            </div>
+          )}
+          {a.website && (
+            <a href={a.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12, fontSize: 11, fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 600, color: accent, textDecoration: 'none', borderBottom: `1px solid ${accent}55` }}>
+              ↗ Sitio web oficial
+            </a>
+          )}
+          <TransportActions query={`${a.name}, ${a.area}, Brasil`} T={T} accent={accent} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Museum card ──────────────────────────────────────────────
+function MuseumCard({ m, expanded, onToggle, accent, T }) {
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Mono style={{ display: 'block', fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{m.kind} · {m.area}</Mono>
+          <Serif style={{ fontSize: 22, color: T.fg, lineHeight: 1.1, display: 'block', letterSpacing: '-0.01em' }}>{m.name}</Serif>
+        </div>
+        {m.rating && <Mono style={{ flexShrink: 0, fontSize: 13, fontWeight: 800, color: accent }}>★ {m.rating}</Mono>}
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.78), lineHeight: 1.5, marginBottom: 12 }}>{m.note}</Mono>
+          {m.hours && (
+            <div style={{ marginBottom: 8 }}>
+              <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>Horario</Mono>
+              <Mono style={{ fontSize: 11, color: T.fg }}>{m.hours}</Mono>
+            </div>
+          )}
+          {m.ticket && (
+            <div style={{ marginBottom: 12 }}>
+              <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>Entrada</Mono>
+              <Mono style={{ fontSize: 11, color: accent, fontWeight: 700 }}>{m.ticket}</Mono>
+            </div>
+          )}
+          {m.website && (
+            <a href={m.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12, fontSize: 11, fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 600, color: accent, textDecoration: 'none', borderBottom: `1px solid ${accent}55` }}>
+              ↗ Sitio web oficial
+            </a>
+          )}
+          <TransportActions query={`${m.name}, ${m.area}, Brasil`} T={T} accent={accent} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Shopping card ───────────────────────────────────────────
+function ShoppingCard({ s, expanded, onToggle, accent, T }) {
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Mono style={{ display: 'block', fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{s.kind} · {s.area}</Mono>
+          <Serif style={{ fontSize: 22, color: T.fg, lineHeight: 1.1, display: 'block', letterSpacing: '-0.01em' }}>{s.name}</Serif>
+        </div>
+        {s.rating && <Mono style={{ flexShrink: 0, fontSize: 13, fontWeight: 800, color: accent }}>★ {s.rating}</Mono>}
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.78), lineHeight: 1.5, marginBottom: 12 }}>{s.note}</Mono>
+          {s.hours && (
+            <div style={{ marginBottom: 12 }}>
+              <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.6), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>Horario</Mono>
+              <Mono style={{ fontSize: 11, color: T.fg }}>{s.hours}</Mono>
+            </div>
+          )}
+          <TransportActions query={`${s.name}, ${s.area}, Brasil`} T={T} accent={accent} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Meal card ────────────────────────────────────────────────
+function MealCard({ m, expanded, onToggle, accent, T }) {
+  return (
+    <Card onClick={onToggle} expanded={expanded} accent={accent} T={T}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Mono style={{ display: 'block', fontSize: 10, color: fade(T, 0.65), textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{m.moment} · {m.kind}</Mono>
+          <Serif style={{ fontSize: 22, color: T.fg, lineHeight: 1.1, display: 'block', letterSpacing: '-0.01em' }}>{m.name}</Serif>
+          <Mono style={{ display: 'block', marginTop: 5, fontSize: 11, color: fade(T, 0.75) }}>{m.area}</Mono>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {m.rating && <Mono style={{ fontSize: 13, fontWeight: 800, color: accent }}>★ {m.rating}</Mono>}
+            <Mono style={{ fontSize: 11, color: fade(T, 0.6), fontWeight: 500 }}>{m.price}</Mono>
+          </div>
+          <StatusPill tone={m.booked ? 'ok' : 'neutral'} T={T} accent={accent}>{m.booked ? 'Reserva' : 'Walk-in'}</StatusPill>
+          {m.category && (
+            <span style={{
+              fontSize: 9, fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 700,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: m.category === 'Restaurante' ? '#E8602C' : m.category === 'Bar' ? '#2A5298' : '#0E6B70',
+              padding: '2px 7px', borderRadius: 99,
+              background: m.category === 'Restaurante' ? 'rgba(232,96,44,0.10)' : m.category === 'Bar' ? 'rgba(42,82,152,0.10)' : 'rgba(14,107,112,0.10)',
+            }}>
+              {m.category}
+            </span>
+          )}
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}` }}>
+          <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.7), lineHeight: 1.5, marginBottom: m.website ? 10 : 0 }}>{m.note}</Mono>
+          {m.website && (
+            <a href={m.website} target="_blank" rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: accent, fontFamily: 'Nunito, system-ui, sans-serif', fontWeight: 700, textDecoration: 'none', marginBottom: 12 }}>
+              ↗ Sitio web
+            </a>
+          )}
+          <TransportActions query={`${m.name}, ${m.area}, Brasil`} T={T} accent={accent} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Filter bar ───────────────────────────────────────────────
+const CITIES = ['São Paulo', 'Rio de Janeiro'];
+const MEAL_CATEGORIES = ['Restaurante', 'Bar', 'Café'];
+
+// ─── Weather data & helpers ───────────────────────────────────
+const WEATHER_CITIES = [
+  { id: 'posadas', label: 'Posadas',        lat: -27.3671, lon: -55.8961, tz: 'America/Argentina/Cordoba' },
+  { id: 'foz',     label: 'Foz do Iguaçu', lat: -25.5478, lon: -54.5882, tz: 'America/Sao_Paulo' },
+  { id: 'sp',      label: 'São Paulo',      lat: -23.5505, lon: -46.6333, tz: 'America/Sao_Paulo' },
+  { id: 'rj',      label: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729, tz: 'America/Sao_Paulo' },
+];
+const DIAS_ES  = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MESES_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function fmtDay(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return { dow: DIAS_ES[dt.getDay()], d, mon: MESES_ES[m - 1] };
+}
+function wmoInfo(code) {
+  if (code === 0)         return { label: 'Despejado',            type: 'sun' };
+  if (code <= 2)          return { label: 'Parcialmente nublado', type: 'partly' };
+  if (code === 3)         return { label: 'Nublado',              type: 'cloud' };
+  if (code <= 48)         return { label: 'Niebla',               type: 'fog' };
+  if (code <= 55)         return { label: 'Llovizna',             type: 'drizzle' };
+  if (code <= 67)         return { label: 'Lluvia',               type: 'rain' };
+  if (code <= 82)         return { label: 'Chubascos',            type: 'rain' };
+  if (code <= 99)         return { label: 'Tormenta',             type: 'storm' };
+  return                         { label: 'Variable',             type: 'partly' };
+}
+function WeatherIcon({ code, size = 26 }) {
+  const w = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const cloudPath = 'M17.5 11.5h-.84A6 6 0 1 0 8 18h9.5a3.5 3.5 0 1 0 0-7';
+  if (code === 0) return (
+    <svg {...w}>
+      <circle cx="12" cy="12" r="4" fill="#F0C030"/>
+      <path stroke="#F0C030" strokeWidth="2" d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 18.01l1.77 1.77M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.77M18.01 5.99l1.77-1.77"/>
+    </svg>
+  );
+  if (code <= 2) return (
+    <svg {...w}>
+      <circle cx="8" cy="9" r="3" fill="#F0C030"/>
+      <path stroke="#F0C030" strokeWidth="1.5" d="M8 4.5V6M8 12v1.5M3.5 9H5M11 9h1.5M5.05 6.05l1.06 1.06M9.89 10.89l1.06 1.06M5.05 11.95l1.06-1.06"/>
+      <path d="M19 13.5h-.8A5 5 0 1 0 10 18.5h9a3 3 0 0 0 0-6" fill="#9DAFC0"/>
+    </svg>
+  );
+  if (code === 3) return (
+    <svg {...w}><path d={cloudPath} fill="#9DAFC0"/></svg>
+  );
+  if (code <= 48) return (
+    <svg {...w} stroke="#9DAFC0" strokeWidth="1.8">
+      <path d="M4 6h16M4 10h14M4 14h12M4 18h9"/>
+    </svg>
+  );
+  const cloud = <path d={cloudPath} fill="#9DAFC0"/>;
+  if (code <= 55) return (
+    <svg {...w}>{cloud}<path stroke="#5B9BD5" strokeWidth="1.8" d="M10 21l-.5 2M13 21l-.5 2"/></svg>
+  );
+  if (code >= 95) return (
+    <svg {...w}>{cloud}<path stroke="#F0C030" strokeWidth="2.2" fill="none" d="M13 15l-2.5 4h3l-2.5 4.5"/></svg>
+  );
+  return (
+    <svg {...w}>{cloud}<path stroke="#5B9BD5" strokeWidth="1.8" d="M9 21l-1 2.5M12.5 21l-1 2.5M16 21l-1 2.5"/></svg>
+  );
+}
+
+function WeatherContent({ T, accent }) {
+  const [weather, setWeather] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+  const [activeCity, setActiveCity] = React.useState('posadas');
+  const [lastUpdate, setLastUpdate] = React.useState(null);
+
+  const fetchAll = React.useCallback(() => {
+    setLoading(true);
+    Promise.all(WEATHER_CITIES.map(city =>
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=14`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(json => ({ id: city.id, daily: json.daily }))
+        .catch(() => ({ id: city.id, daily: null }))
+    )).then(results => {
+      const map = {};
+      results.forEach(r => { map[r.id] = r.daily; });
+      setWeather(map);
+      setLoading(false);
+      setLastUpdate(new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
+    });
+  }, []);
+
+  React.useEffect(() => { fetchAll(); }, []);
+
+  const daily = weather[activeCity];
+
+  return (
+    <div>
+      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {WEATHER_CITIES.map(city => {
+          const on = city.id === activeCity;
+          return (
+            <button key={city.id} onClick={() => setActiveCity(city.id)} style={{
+              padding: '6px 14px', borderRadius: 99,
+              border: `1px solid ${on ? accent : fade(T, 0.14)}`,
+              background: on ? `${accent}18` : 'transparent',
+              color: on ? accent : fade(T, 0.72),
+              fontFamily: 'Nunito, system-ui, sans-serif',
+              fontSize: 11, fontWeight: on ? 700 : 500,
+              letterSpacing: '0.04em', cursor: 'pointer',
+              transition: 'all .15s ease',
+            }}>{city.label}</button>
+          );
+        })}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 14px' }}>
+        <Mono style={{ fontSize: 9, color: fade(T, 0.45), textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          open-meteo.com · sin API key
+        </Mono>
+        <button onClick={fetchAll} style={{
+          background: 'transparent', border: `1px solid ${fade(T, 0.12)}`, borderRadius: 8,
+          padding: '4px 10px', cursor: 'pointer', color: accent,
+          fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 10, fontWeight: 700,
+        }}>
+          {loading ? '···' : '↻ Actualizar'}
+        </button>
+      </div>
+
+      {loading && (
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
+          <Mono style={{ fontSize: 11, color: fade(T, 0.35) }}>Cargando pronóstico...</Mono>
+        </div>
+      )}
+
+      {!loading && !daily && (
+        <div style={{ margin: '0 16px', padding: '32px', textAlign: 'center', background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}` }}>
+          <Mono style={{ fontSize: 11, color: fade(T, 0.45) }}>No se pudo obtener el pronóstico.</Mono>
+          <button onClick={fetchAll} style={{ marginTop: 12, background: accent, border: 'none', borderRadius: 8, padding: '8px 16px', color: '#fff', fontFamily: 'Nunito', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'block', margin: '12px auto 0' }}>
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {!loading && daily && (
+        <div style={{ margin: '0 16px' }}>
+          <div style={{ background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}`, overflow: 'hidden', boxShadow: `0 2px 12px ${fade(T, 0.05)}` }}>
+            {daily.time.map((iso, i) => {
+              const { dow, d, mon } = fmtDay(iso);
+              const info = wmoInfo(daily.weathercode[i]);
+              const tmax = Math.round(daily.temperature_2m_max[i]);
+              const tmin = Math.round(daily.temperature_2m_min[i]);
+              const precip = daily.precipitation_sum[i] ?? 0;
+              const isLast = i === daily.time.length - 1;
+              const maxColor = tmax >= 30 ? '#E8602C' : tmax >= 24 ? accent : '#2A5298';
+              return (
+                <FadeIn key={iso} delay={i * 18}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 10,
+                    borderBottom: isLast ? 'none' : `1px solid ${fade(T, 0.05)}`,
+                    background: i % 2 === 0 ? 'transparent' : fade(T, 0.015),
+                  }}>
+                    <div style={{ width: 44, flexShrink: 0 }}>
+                      <Mono style={{ fontSize: 11, fontWeight: 700, color: T.fg, display: 'block', letterSpacing: '0.02em' }}>{dow}</Mono>
+                      <Mono style={{ fontSize: 9, color: fade(T, 0.5), display: 'block', marginTop: 1 }}>{d} {mon}</Mono>
+                    </div>
+                    <div style={{ width: 30, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <WeatherIcon code={daily.weathercode[i]} size={24} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Mono style={{ fontSize: 10, color: fade(T, 0.68), display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.label}</Mono>
+                      {precip > 0.1 && (
+                        <Mono style={{ fontSize: 9, color: '#5B9BD5', display: 'block', marginTop: 1 }}>{precip.toFixed(1)} mm</Mono>
+                      )}
+                    </div>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <Mono style={{ fontSize: 14, fontWeight: 800, color: maxColor, display: 'inline' }}>{tmax}°</Mono>
+                      <Mono style={{ fontSize: 11, color: fade(T, 0.42), display: 'inline' }}> / {tmin}°</Mono>
+                    </div>
+                  </div>
+                </FadeIn>
+              );
+            })}
+          </div>
+          {lastUpdate && (
+            <Mono style={{ display: 'block', fontSize: 9, color: fade(T, 0.3), textAlign: 'center', marginTop: 8, letterSpacing: '0.05em' }}>
+              Actualizado {lastUpdate} · open-meteo.com
+            </Mono>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterBar({ filters, active: activeFilters, onToggle, accent, T }) {
+  return (
+    <div style={{ padding: '0 16px 14px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {filters.map(({ key, label, color }) => {
+        const on = activeFilters.includes(key);
+        return (
+          <button
+            key={key}
+            onClick={() => onToggle(key)}
+            style={{
+              padding: '6px 12px', borderRadius: 99,
+              border: `1px solid ${on ? (color || accent) : fade(T, 0.14)}`,
+              background: on ? `${color || accent}18` : 'transparent',
+              color: on ? (color || accent) : fade(T, 0.75),
+              fontFamily: 'Nunito, system-ui, sans-serif',
+              fontSize: 11, fontWeight: on ? 700 : 500,
+              letterSpacing: '0.04em', cursor: 'pointer',
+              transition: 'all .15s ease',
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Section content ──────────────────────────────────────────
+function SectionContent({ active, accent, expanded, toggleExpand, T }) {
+  const [cityFilter, setCityFilter] = useState(['São Paulo']);
+  const [catFilter,  setCatFilter]  = useState([]);
+
+  useEffect(() => {
+    setCityFilter(['São Paulo']);
+    setCatFilter([]);
+  }, [active]);
+
+  // Flight statuses — keyed by flight id, null = still loading
+  const [flightStatuses, setFlightStatuses] = useState({});
+
+  useEffect(() => {
+    if (active !== 'vuelos') return;
+    setFlightStatuses({});
+    Promise.all(FLIGHTS.map(fetchFlightStatus)).then(results => {
+      const allHaveData = results.every(r => r.data != null);
+      const map = {};
+      results.forEach(r => {
+        map[r.id] = allHaveData
+          ? { data: r.data, error: r.error }
+          : { data: null, error: null };
+      });
+      setFlightStatuses(map);
+    });
+  }, [active]);
+
+  const handleRefreshFlight = (flightId) => {
+    const f = FLIGHTS.find(fl => fl.id === flightId);
+    return fetchFlightStatus(f).then(result => {
+      setFlightStatuses(prev => ({
+        ...prev,
+        [flightId]: { data: result.data, error: result.error },
+      }));
+    });
+  };
+
+  const selectCity = (city) => setCityFilter(prev => prev.length === 1 && prev[0] === city ? [] : [city]);
+  const toggleCat  = (cat)  => setCatFilter(f =>  f.includes(cat)  ? f.filter(c => c !== cat)  : [...f, cat]);
+
+  const cityFilters = CITIES.map(c => ({ key: c, label: c }));
+  const catFilters  = MEAL_CATEGORIES.map(c => ({
+    key: c, label: c,
+    color: c === 'Restaurante' ? '#E8602C' : c === 'Bar' ? '#2A5298' : '#0E6B70',
+  }));
+
+  const filterByCity = (items) => cityFilter.length === 0 ? items : items.filter(i => cityFilter.includes(i.city));
+  const filterByCat  = (items) => catFilter.length  === 0 ? items : items.filter(i => catFilter.includes(i.category));
+
+  const idx = SECTIONS.findIndex(s => s.id === active) + 1;
+  const total = SECTIONS.length;
+  const titles = {
+    vuelos:        { title: 'Vuelos',        hint: 'GOL · 3 tramos' },
+    alojamientos:  { title: 'Alojamientos',  hint: '4 estadías · 12 noches' },
+    actividades:   { title: 'Actividades',   hint: '20 por ciudad · SP & RJ' },
+    museos:        { title: 'Museos',        hint: '10 por ciudad · SP & RJ' },
+    shoppings:     { title: 'Shoppings',     hint: '10 por ciudad · SP & RJ' },
+    comidas:       { title: 'Comidas',       hint: '10 por categoría · SP & RJ' },
+    clima:         { title: 'Clima',         hint: 'Pronóstico 14 días · 4 ciudades' },
+  }[active];
+
+  const props = (id) => ({ expanded: expanded === id, onToggle: () => toggleExpand(id), accent, T });
+
+  const visibleCities = cityFilter.length > 0 ? CITIES.filter(c => cityFilter.includes(c)) : CITIES;
+
+  const GroupedSection = ({ data, Card: CardComp, cardProp }) => (
+    <>
+      <FilterBar filters={cityFilters} active={cityFilter} onToggle={selectCity} accent={accent} T={T} />
+      {visibleCities.map(city => {
+        const items = data.filter(x => x.city === city)
+          .sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+        if (items.length === 0) return <EmptyFilter key={city} T={T} />;
+        return (
+          <div key={city}>
+            <CityGroupHeader city={city} acts={items} T={T} accent={accent} />
+            {items.map((item, i) => (
+              <FadeIn key={item.id} delay={i * 35}>
+                <CardComp {...{ [cardProp]: item }} {...props(item.id)} />
+              </FadeIn>
+            ))}
+          </div>
+        );
+      })}
+    </>
+  );
+
+  return (
+    <div key={active} style={{ animation: 'fadein .35s ease', paddingTop: 20 }}>
+      <SectionCaption index={idx} total={total} title={titles.title} hint={titles.hint} T={T} accent={accent} />
+
+      {active === 'vuelos' && FLIGHTS.map((f, i) => (
+        <FadeIn key={f.id} delay={i * 60}>
+          <FlightCard f={f} liveStatus={flightStatuses[f.id] ?? null} onRefresh={() => handleRefreshFlight(f.id)} {...props(f.id)} />
+        </FadeIn>
+      ))}
+      {active === 'alojamientos' && STAYS.map((s, i) => (
+        <FadeIn key={s.id} delay={i * 60}>
+          <StayCard s={s} {...props(s.id)} />
+        </FadeIn>
+      ))}
+      {active === 'actividades' && (
+        <>
+          <FilterBar filters={cityFilters} active={cityFilter} onToggle={selectCity} accent={accent} T={T} />
+          {visibleCities.map(city => {
+            const acts = ACTIVITIES.filter(a => a.city === city)
+              .sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+            if (acts.length === 0) return <EmptyFilter key={city} T={T} />;
+            return (
+              <div key={city}>
+                <CityGroupHeader city={city} acts={acts} T={T} accent={accent} />
+                {acts.map((a, i) => (
+                  <FadeIn key={a.id} delay={i * 35}>
+                    <ActivityRow a={a} {...props(a.id)} />
+                  </FadeIn>
+                ))}
+              </div>
+            );
+          })}
+        </>
+      )}
+      {active === 'museos'    && <GroupedSection data={MUSEUMS}   Card={MuseumCard}   cardProp="m" />}
+      {active === 'shoppings' && <GroupedSection data={SHOPPINGS} Card={ShoppingCard} cardProp="s" />}
+      {active === 'comidas' && (
+        <>
+          <FilterBar filters={cityFilters} active={cityFilter} onToggle={selectCity} accent={accent} T={T} />
+          <FilterBar filters={catFilters} active={catFilter} onToggle={toggleCat} accent={accent} T={T} />
+          {visibleCities.map(city => {
+            const meals = (catFilter.length === 0 ? MEALS : MEALS.filter(m => catFilter.includes(m.category)))
+              .filter(m => m.city === city)
+              .sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+            if (meals.length === 0) return <EmptyFilter key={city} T={T} />;
+            return (
+              <div key={city}>
+                <CityGroupHeader city={city} acts={meals} T={T} accent={accent} />
+                {meals.map((m, i) => (
+                  <FadeIn key={m.id} delay={i * 50}>
+                    <MealCard m={m} {...props(m.id)} />
+                  </FadeIn>
+                ))}
+              </div>
+            );
+          })}
+        </>
+      )}
+      {active === 'clima' && <WeatherContent T={T} accent={accent} />}
+    </div>
+  );
+}
+
+function EmptyFilter({ T }) {
+  return (
+    <div style={{ padding: '32px 22px', textAlign: 'center' }}>
+      <Mono style={{ fontSize: 11, color: fade(T, 0.35), letterSpacing: '0.08em' }}>Sin resultados para este filtro</Mono>
+    </div>
+  );
+}
+
+// ─── Footer ───────────────────────────────────────────────────
+function Footer({ accent, T }) {
+  return (
+    <div style={{ padding: '32px 22px 40px', textAlign: 'center' }}>
+      <Serif style={{ display: 'block', fontSize: 28, color: T.fg, fontStyle: 'italic', letterSpacing: '-0.01em' }}>
+        Boa viagem.
+      </Serif>
+      <Mono style={{ display: 'block', marginTop: 10, fontSize: 9, color: fade(T, 0.35), letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+        Para Ale ❤️
+      </Mono>
+      <div style={{ height: 24 }} />
+      <Mono style={{ fontSize: 9, color: fade(T, 0.25), letterSpacing: '0.16em' }}>— {TRIP.country} —</Mono>
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = { "dark": false, "accent": "#0E6B70", "showHero": true };
+
+// ─── Login screen ─────────────────────────────────────────────
+function LoginScreen({ onAuth }) {
+  const T = makeTheme(false);
+  const [step, setStep]       = React.useState('idle'); // idle | sending | sent | verifying
+  const [code, setCode]       = React.useState('');
+  const [otpStore, setOtpStore] = React.useState(null);
+  const [errMsg, setErrMsg]   = React.useState('');
+  const [attempts, setAttempts] = React.useState(0);
+  const inputRef = React.useRef(null);
+
+  const masked = AUTH_EMAIL.replace(/^(.{2})(.+?)(@.+)$/, (_, a, b, c) => a + b.replace(/./g, '·') + c);
+
+  const sendOtp = async () => {
+    setStep('sending');
+    setErrMsg('');
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    try {
+      await window.emailjs.send(
+        EMAILJS_SVC_ID, EMAILJS_TPL_ID,
+        { to_email: AUTH_EMAIL, otp_code: otp, app_name: 'Itinerario Brasil 2026' },
+        { publicKey: EMAILJS_PUB_KEY }
+      );
+      setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
+      setStep('sent');
+      setAttempts(0);
+      setTimeout(() => inputRef.current?.focus(), 80);
+    } catch {
+      setStep('idle');
+      setErrMsg('No se pudo enviar el código. Verificá la config de EmailJS.');
+    }
+  };
+
+  const verify = () => {
+    if (!otpStore) return;
+    if (Date.now() > otpStore.expires) {
+      setErrMsg('El código expiró. Solicitá uno nuevo.');
+      setStep('idle'); setCode(''); return;
+    }
+    if (code === otpStore.otp) {
+      sessionStorage.setItem('_itAuth', JSON.stringify({ verified: true, expires: Date.now() + SESSION_TTL_MS }));
+      onAuth();
+    } else {
+      const n = attempts + 1;
+      setAttempts(n);
+      if (n >= 3) {
+        setErrMsg('Demasiados intentos. Solicitá un nuevo código.');
+        setStep('idle'); setCode('');
+      } else {
+        setErrMsg(`Código incorrecto · ${3 - n} intento${3 - n === 1 ? '' : 's'} restante${3 - n === 1 ? '' : 's'}`);
+      }
+    }
+  };
+
+  const btnStyle = (active) => ({
+    width: '100%', padding: '13px', border: 'none', borderRadius: 10,
+    background: active ? '#0E6B70' : fade(T, 0.09),
+    color: active ? '#fff' : fade(T, 0.3),
+    fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 13, fontWeight: 700,
+    cursor: active ? 'pointer' : 'default', letterSpacing: '0.04em',
+    transition: 'background .15s ease, color .15s ease',
+  });
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'Nunito, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+      <DecoDots T={T} />
+      <div style={{ width: '100%', maxWidth: 360, position: 'relative', zIndex: 1 }}>
+
+
+        {/* Card */}
+        <div style={{ background: T.cardBg, borderRadius: 16, padding: '28px 24px', border: `1px solid ${fade(T, 0.08)}`, boxShadow: `0 8px 32px ${fade(T, 0.07)}` }}>
+
+          {(step === 'idle') && (<>
+            <Mono style={{ display: 'block', fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Acceso privado</Mono>
+            <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 20 }}>
+              Se enviará un código de 6 dígitos a<br /><span style={{ color: T.fg, fontWeight: 700 }}>{masked}</span>
+            </Mono>
+            {errMsg && <Mono style={{ display: 'block', fontSize: 11, color: '#E8602C', marginBottom: 12, lineHeight: 1.5 }}>{errMsg}</Mono>}
+            <button onClick={sendOtp} style={btnStyle(true)}>Enviar código</button>
+          </>)}
+
+          {step === 'sending' && (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <Mono style={{ fontSize: 11, color: fade(T, 0.4), letterSpacing: '0.08em' }}>Enviando código···</Mono>
+            </div>
+          )}
+
+          {step === 'sent' && (<>
+            <Mono style={{ display: 'block', fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Ingresá el código</Mono>
+            <Mono style={{ display: 'block', fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 18 }}>
+              Código enviado a <span style={{ color: T.fg, fontWeight: 700 }}>{masked}</span>.<br />Válido por 10 minutos.
+            </Mono>
+            {errMsg && <Mono style={{ display: 'block', fontSize: 11, color: '#E8602C', marginBottom: 10, lineHeight: 1.5 }}>{errMsg}</Mono>}
+            <input
+              ref={inputRef}
+              type="text" inputMode="numeric" maxLength={6}
+              value={code}
+              onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setErrMsg(''); }}
+              onKeyDown={e => e.key === 'Enter' && code.length === 6 && verify()}
+              placeholder="000000"
+              style={{
+                width: '100%', padding: '14px 12px', boxSizing: 'border-box',
+                background: fade(T, 0.04), border: `1.5px solid ${fade(T, 0.13)}`,
+                borderRadius: 10, fontSize: 28, fontFamily: 'Nunito, monospace',
+                fontWeight: 800, textAlign: 'center', letterSpacing: '0.35em',
+                color: T.fg, outline: 'none', marginBottom: 12,
+                transition: 'border-color .15s ease',
+              }}
+              onFocus={e => e.target.style.borderColor = '#0E6B70'}
+              onBlur={e => e.target.style.borderColor = fade(T, 0.13)}
+            />
+            <button onClick={verify} disabled={code.length < 6} style={btnStyle(code.length === 6)}>
+              Verificar →
+            </button>
+            <button onClick={() => { setStep('idle'); setCode(''); setErrMsg(''); }}
+              style={{ display: 'block', width: '100%', marginTop: 10, background: 'transparent', border: 'none', padding: '8px', color: fade(T, 0.45), fontFamily: 'Nunito', fontSize: 11, cursor: 'pointer', letterSpacing: '0.04em' }}>
+              ← Reenviar código
+            </button>
+          </>)}
+        </div>
+
+        <Mono style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: 10, color: fade(T, 0.28), letterSpacing: '0.1em' }}>
+          Para Ale ❤
+        </Mono>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [authed, setAuthed] = useState(() => {
+    try {
+      const s = JSON.parse(sessionStorage.getItem('_itAuth') || 'null');
+      return !!(s && s.verified && Date.now() < s.expires);
+    } catch { return false; }
+  });
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const T = useMemo(() => makeTheme(t.dark), [t.dark]);
+  const [active, setActive] = useState(null);
+  const [expanded, setExpanded] = useState(null);
+  const scrollRef = useRef(null);
+
+  const toggleExpand = (id) => setExpanded(e => e === id ? null : id);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTo({ top: 0 });
+    setExpanded(null);
+  }, [active]);
+
+  const accent = t.accent;
+
+  if (!authed) return <LoginScreen onAuth={() => setAuthed(true)} />;
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg, color: T.fg, fontFamily: 'Nunito, system-ui, sans-serif', transition: 'background .3s ease, color .3s ease' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto' }}>
+        <div ref={scrollRef}>
+          {active === null ? (
+            <div key="dashboard" style={{ animation: 'fadein .35s ease' }}>
+              {t.showHero && <Hero accent={accent} T={T} onToggleDark={() => setTweak('dark', !t.dark)} />}
+              <SectionList onOpen={setActive} accent={accent} T={T} />
+              <Footer accent={accent} T={T} />
+            </div>
+          ) : (
+            <div key={`sec-${active}`} style={{ animation: 'slidein .32s ease' }}>
+              <SectionTopBar onBack={() => setActive(null)} accent={accent} T={T} current={active} />
+              <SectionContent active={active} accent={accent} T={T} expanded={expanded} toggleExpand={toggleExpand} />
+            </div>
+          )}
+        </div>
+        <style>{`
+          @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+          @keyframes slidein { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          * { -webkit-tap-highlight-color: transparent; }
+        `}</style>
+      </div>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Tema">
+          <TweakToggle label="Modo oscuro" value={t.dark} onChange={(v) => setTweak('dark', v)} />
+        </TweakSection>
+        <TweakSection label="Aspecto">
+          <TweakColor label="Acento" value={t.accent} onChange={(v) => setTweak('accent', v)} options={['#0E6B70', '#D81B60', '#F0C030', '#E8602C', '#2A5298']} />
+          <TweakToggle label="Mostrar hero" value={t.showHero} onChange={(v) => setTweak('showHero', v)} />
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
