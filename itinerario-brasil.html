@@ -1162,18 +1162,20 @@ function WeatherContent({ T, accent }) {
   const [activeCity, setActiveCity] = React.useState('posadas');
   const [lastUpdate, setLastUpdate] = React.useState(null);
   const [expandedDay, setExpandedDay] = React.useState(null);
+  const [hourlyCache, setHourlyCache] = React.useState({});
+  const [hourlyLoading, setHourlyLoading] = React.useState(false);
 
   const fetchAll = React.useCallback(() => {
     setLoading(true);
     setExpandedDay(null);
     Promise.all(WEATHER_CITIES.map(city =>
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode&timezone=${encodeURIComponent(city.tz)}&forecast_days=14`)
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=14`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(json => ({ id: city.id, daily: json.daily, hourly: json.hourly }))
-        .catch(() => ({ id: city.id, daily: null, hourly: null }))
+        .then(json => ({ id: city.id, daily: json.daily }))
+        .catch(() => ({ id: city.id, daily: null }))
     )).then(results => {
       const map = {};
-      results.forEach(r => { map[r.id] = { daily: r.daily, hourly: r.hourly }; });
+      results.forEach(r => { map[r.id] = r.daily; });
       setWeather(map);
       setLoading(false);
       setLastUpdate(new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
@@ -1182,29 +1184,42 @@ function WeatherContent({ T, accent }) {
 
   React.useEffect(() => { fetchAll(); }, []);
 
-  const cityData = weather[activeCity];
-  const daily = cityData?.daily;
-  const hourly = cityData?.hourly;
-
-  const getHourlySlots = (dayIdx) => {
-    if (!hourly) return [];
-    const slots = [];
-    for (let h = 0; h < 24; h += 3) {
-      const i = dayIdx * 24 + h;
-      slots.push({
-        time: `${String(h).padStart(2, '0')}:00`,
-        temp: Math.round(hourly.temperature_2m[i] ?? 0),
-        feels: Math.round(hourly.apparent_temperature[i] ?? 0),
-        precip: hourly.precipitation_probability[i] ?? 0,
-        code: hourly.weathercode[i] ?? 0,
+  React.useEffect(() => {
+    if (expandedDay === null) return;
+    const daily = weather[activeCity];
+    if (!daily) return;
+    const iso = daily.time[expandedDay];
+    const cacheKey = `${activeCity}-${iso}`;
+    if (hourlyCache[cacheKey] !== undefined) return;
+    const city = WEATHER_CITIES.find(c => c.id === activeCity);
+    setHourlyLoading(true);
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode&timezone=${encodeURIComponent(city.tz)}&start_date=${iso}&end_date=${iso}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(json => {
+        const slots = [];
+        for (let h = 0; h < 24; h += 3) {
+          slots.push({
+            time: `${String(h).padStart(2, '0')}:00`,
+            temp: Math.round(json.hourly.temperature_2m[h] ?? 0),
+            feels: Math.round(json.hourly.apparent_temperature[h] ?? 0),
+            precip: json.hourly.precipitation_probability[h] ?? 0,
+            code: json.hourly.weathercode[h] ?? 0,
+          });
+        }
+        setHourlyCache(prev => ({ ...prev, [cacheKey]: slots }));
+        setHourlyLoading(false);
+      })
+      .catch(() => {
+        setHourlyCache(prev => ({ ...prev, [cacheKey]: [] }));
+        setHourlyLoading(false);
       });
-    }
-    return slots;
-  };
+  }, [expandedDay, activeCity]);
+
+  const daily = weather[activeCity];
 
   return (
     <div>
-      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         {WEATHER_CITIES.map(city => {
           const on = city.id === activeCity;
           return (
@@ -1220,15 +1235,14 @@ function WeatherContent({ T, accent }) {
             }}>{city.label}</button>
           );
         })}
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 20px 14px' }}>
         <button onClick={fetchAll} style={{
-          background: 'transparent', border: `1px solid ${fade(T, 0.12)}`, borderRadius: 8,
-          padding: '4px 10px', cursor: 'pointer', color: accent,
-          fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 10, fontWeight: 700,
+          marginLeft: 'auto', background: 'transparent',
+          border: `1px solid ${fade(T, 0.12)}`, borderRadius: 8,
+          width: 30, height: 30, cursor: 'pointer', color: accent,
+          fontFamily: 'Nunito, system-ui, sans-serif', fontSize: 15, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          {loading ? '···' : '↻ Actualizar'}
+          {loading ? '·' : '↻'}
         </button>
       </div>
 
@@ -1259,7 +1273,8 @@ function WeatherContent({ T, accent }) {
               const isLast = i === daily.time.length - 1;
               const isOpen = expandedDay === i;
               const maxColor = tmax >= 30 ? '#E8602C' : tmax >= 24 ? accent : '#2A5298';
-              const slots = isOpen ? getHourlySlots(i) : [];
+              const cacheKey = `${activeCity}-${iso}`;
+              const slots = hourlyCache[cacheKey];
               return (
                 <FadeIn key={iso} delay={i * 18}>
                   <div style={{ borderBottom: isLast && !isOpen ? 'none' : `1px solid ${fade(T, 0.06)}` }}>
@@ -1290,33 +1305,45 @@ function WeatherContent({ T, accent }) {
                           <Mono style={{ fontSize: 14, fontWeight: 800, color: maxColor, display: 'inline' }}>{tmax}°</Mono>
                           <Mono style={{ fontSize: 11, color: fade(T, 0.42), display: 'inline' }}> / {tmin}°</Mono>
                         </div>
-                        <Mono style={{ fontSize: 10, color: isOpen ? accent : fade(T, 0.35), transition: 'transform .2s', display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none' }}>▾</Mono>
+                        <Mono style={{ fontSize: 10, color: isOpen ? accent : fade(T, 0.35), display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</Mono>
                       </div>
                     </div>
 
                     {isOpen && (
-                      <div style={{ overflowX: 'auto', padding: '0 12px 14px', scrollbarWidth: 'none' }}>
-                        <div style={{ display: 'flex', gap: 8, paddingTop: 10, minWidth: 'max-content' }}>
-                          {slots.map(slot => {
-                            const tColor = slot.temp >= 30 ? '#E8602C' : slot.temp >= 24 ? accent : '#2A5298';
-                            return (
-                              <div key={slot.time} style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                                background: fade(T, 0.04), borderRadius: 10, padding: '8px 10px', minWidth: 52,
-                                border: `1px solid ${fade(T, 0.06)}`,
-                              }}>
-                                <Mono style={{ fontSize: 9, color: fade(T, 0.5), fontWeight: 600 }}>{slot.time}</Mono>
-                                <WeatherIcon code={slot.code} size={18} />
-                                <Mono style={{ fontSize: 13, fontWeight: 800, color: tColor }}>{slot.temp}°</Mono>
-                                {slot.precip > 0 ? (
-                                  <Mono style={{ fontSize: 9, color: '#5B9BD5', fontWeight: 600 }}>{slot.precip}%</Mono>
-                                ) : (
-                                  <div style={{ height: 14 }} />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <div style={{ padding: '0 12px 14px' }}>
+                        {(hourlyLoading && !slots) ? (
+                          <div style={{ display: 'flex', gap: 8, paddingTop: 10 }}>
+                            {[0,1,2,3,4,5,6,7].map(j => (
+                              <div key={j} style={{ minWidth: 52, height: 82, borderRadius: 10, background: fade(T, 0.07), animation: `pulse 1.4s ease ${j * 0.08}s infinite`, flexShrink: 0 }} />
+                            ))}
+                          </div>
+                        ) : slots && slots.length > 0 ? (
+                          <div style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
+                            <div style={{ display: 'flex', gap: 8, paddingTop: 10, minWidth: 'max-content' }}>
+                              {slots.map(slot => {
+                                const tColor = slot.temp >= 30 ? '#E8602C' : slot.temp >= 24 ? accent : '#2A5298';
+                                return (
+                                  <div key={slot.time} style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                                    background: fade(T, 0.04), borderRadius: 10, padding: '8px 10px', minWidth: 52,
+                                    border: `1px solid ${fade(T, 0.06)}`,
+                                  }}>
+                                    <Mono style={{ fontSize: 9, color: fade(T, 0.5), fontWeight: 600 }}>{slot.time}</Mono>
+                                    <WeatherIcon code={slot.code} size={18} />
+                                    <Mono style={{ fontSize: 13, fontWeight: 800, color: tColor }}>{slot.temp}°</Mono>
+                                    {slot.precip > 0 ? (
+                                      <Mono style={{ fontSize: 9, color: '#5B9BD5', fontWeight: 600 }}>{slot.precip}%</Mono>
+                                    ) : (
+                                      <div style={{ height: 14 }} />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : slots && slots.length === 0 ? (
+                          <Mono style={{ fontSize: 10, color: fade(T, 0.4), padding: '12px 4px', display: 'block' }}>No disponible</Mono>
+                        ) : null}
                       </div>
                     )}
                   </div>
@@ -1363,14 +1390,33 @@ function FilterBar({ filters, active: activeFilters, onToggle, accent, T }) {
   );
 }
 
+function SectionSkeleton({ T }) {
+  return (
+    <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {[0, 1, 2, 3].map(i => (
+        <div key={i} style={{
+          borderRadius: 14,
+          background: fade(T, 0.07),
+          animation: `pulse 1.4s ease ${i * 0.1}s infinite`,
+          height: i === 0 ? 80 : 68,
+        }} />
+      ))}
+    </div>
+  );
+}
+
 // ─── Section content ──────────────────────────────────────────
 function SectionContent({ active, accent, expanded, toggleExpand, T }) {
   const [cityFilter, setCityFilter] = useState(['São Paulo']);
   const [catFilter,  setCatFilter]  = useState([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setCityFilter(['São Paulo']);
     setCatFilter([]);
+    setReady(false);
+    const t = setTimeout(() => setReady(true), 220);
+    return () => clearTimeout(t);
   }, [active]);
 
   // Flight statuses — keyed by flight id, null = still loading
@@ -1454,17 +1500,18 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     <div key={active} style={{ animation: 'fadein .35s ease', paddingTop: 20 }}>
       <SectionCaption index={idx} total={total} title={titles.title} hint={titles.hint} T={T} accent={accent} />
 
-      {active === 'vuelos' && FLIGHTS.map((f, i) => (
+      {!ready && <SectionSkeleton T={T} />}
+      {ready && active === 'vuelos' && FLIGHTS.map((f, i) => (
         <FadeIn key={f.id} delay={i * 60}>
           <FlightCard f={f} liveStatus={flightStatuses[f.id] ?? null} onRefresh={() => handleRefreshFlight(f.id)} {...props(f.id)} />
         </FadeIn>
       ))}
-      {active === 'alojamientos' && STAYS.map((s, i) => (
+      {ready && active === 'alojamientos' && STAYS.map((s, i) => (
         <FadeIn key={s.id} delay={i * 60}>
           <StayCard s={s} {...props(s.id)} />
         </FadeIn>
       ))}
-      {active === 'actividades' && (
+      {ready && active === 'actividades' && (
         <>
           <FilterBar filters={cityFilters} active={cityFilter} onToggle={selectCity} accent={accent} T={T} />
           {visibleCities.map(city => {
@@ -1484,9 +1531,9 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
           })}
         </>
       )}
-      {active === 'museos'    && <GroupedSection data={MUSEUMS}   Card={MuseumCard}   cardProp="m" />}
-      {active === 'shoppings' && <GroupedSection data={SHOPPINGS} Card={ShoppingCard} cardProp="s" />}
-      {active === 'comidas' && (
+      {ready && active === 'museos'    && <GroupedSection data={MUSEUMS}   Card={MuseumCard}   cardProp="m" />}
+      {ready && active === 'shoppings' && <GroupedSection data={SHOPPINGS} Card={ShoppingCard} cardProp="s" />}
+      {ready && active === 'comidas' && (
         <>
           <FilterBar filters={cityFilters} active={cityFilter} onToggle={selectCity} accent={accent} T={T} />
           <FilterBar filters={catFilters} active={catFilter} onToggle={toggleCat} accent={accent} T={T} />
@@ -1508,7 +1555,7 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
           })}
         </>
       )}
-      {active === 'clima' && <WeatherContent T={T} accent={accent} />}
+      {ready && active === 'clima' && <WeatherContent T={T} accent={accent} />}
     </div>
   );
 }
