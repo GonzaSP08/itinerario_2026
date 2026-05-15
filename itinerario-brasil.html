@@ -1215,6 +1215,8 @@ const OTP_MAX_SENDS = 3;
 function LoginScreen({ onAuth }) {
   const T = makeTheme(false);
   const [step, setStep] = React.useState("idle");
+  const [email, setEmail] = React.useState("");
+  const [emailTouched, setEmailTouched] = React.useState(false);
   const [code, setCode] = React.useState("");
   const [otpStore, setOtpStore] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState("");
@@ -1228,8 +1230,12 @@ function LoginScreen({ onAuth }) {
     timerRef.current = setTimeout(() => setCooldown((c) => c - 1), 1e3);
     return () => clearTimeout(timerRef.current);
   }, [cooldown]);
-  const masked = AUTH_EMAIL.replace(/^(.{2})(.+?)(@.+)$/, (_, a, b, c) => a + b.replace(/./g, "\xB7") + c);
-  const canSend = cooldown === 0 && sends < OTP_MAX_SENDS && step !== "sending";
+  const [emailFocused, setEmailFocused] = React.useState(false);
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+  const emailOk = isValidEmail(email);
+  const emailErr = emailTouched && email.length > 0 && !emailOk;
+  const masked = email.replace(/^(.{2})(.+?)(@.+)$/, (_, a, b, c) => a + b.replace(/./g, "\xB7") + c);
+  const canSend = cooldown === 0 && sends < OTP_MAX_SENDS && step !== "sending" && emailOk;
   const sendOtp = async () => {
     if (!canSend) return;
     setStep("sending");
@@ -1239,7 +1245,7 @@ function LoginScreen({ onAuth }) {
       await window.emailjs.send(
         EMAILJS_SVC_ID,
         EMAILJS_TPL_ID,
-        { to_email: AUTH_EMAIL, otp_code: otp, app_name: "Itinerario Brasil 2026" },
+        { to_email: email.trim(), otp_code: otp, app_name: "Itinerario Brasil 2026" },
         { publicKey: EMAILJS_PUB_KEY }
       );
       setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
@@ -1294,57 +1300,73 @@ function LoginScreen({ onAuth }) {
     letterSpacing: "0.04em",
     transition: "background .15s ease, color .15s ease"
   });
+  const emailBorderColor = emailErr ? "#E8602C" : emailFocused ? "#0E6B70" : (emailOk && emailTouched) ? "#34c759" : fade(T, 0.13);
+  const emailInputStyle = {
+    width: "100%",
+    padding: "12px 14px",
+    boxSizing: "border-box",
+    background: fade(T, 0.04),
+    border: `1.5px solid ${emailBorderColor}`,
+    borderRadius: 10,
+    fontSize: 14,
+    fontFamily: "Nunito, system-ui, sans-serif",
+    fontWeight: 600,
+    color: T.fg,
+    outline: "none",
+    marginBottom: emailErr ? 6 : 16,
+    transition: "border-color .15s ease"
+  };
   if (step === "success") return /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden", animation: "fadeout 0.5s ease 1.5s forwards" } }, /* @__PURE__ */ React.createElement(DecoDots, { T }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", position: "relative", zIndex: 1, animation: "fadein 0.6s ease" } }, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 86, color: T.fg, fontStyle: "italic", letterSpacing: "-0.025em", display: "block", lineHeight: 0.95 } }, "Brasil"), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16 } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 6, marginTop: 22 } }, [0, 1, 2].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: "#0E6B70", animation: `pulse 1.2s ease ${i * 0.2}s infinite` } })))));
-  return /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100vh", background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "Nunito, system-ui, sans-serif", position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement(DecoDots, { T }), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 360, position: "relative", zIndex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { background: T.cardBg, borderRadius: 16, padding: "28px 24px", border: `1px solid ${fade(T, 0.08)}`, boxShadow: `0 8px 32px ${fade(T, 0.07)}` } }, step === "idle" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: "0.04em", textTransform: "uppercase" } }, "Acceso privado"), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 20 } }, "Se enviar\xE1 un c\xF3digo de 6 d\xEDgitos a", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: T.fg, fontWeight: 700 } }, masked)), errMsg && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 12, lineHeight: 1.5 } }, errMsg), sends >= OTP_MAX_SENDS ? /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", textAlign: "center", padding: "12px 0", lineHeight: 1.6 } }, "L\xEDmite de env\xEDos alcanzado.", /* @__PURE__ */ React.createElement("br", null), "Intent\xE1 de nuevo m\xE1s tarde.") : /* @__PURE__ */ React.createElement("button", { onClick: sendOtp, disabled: !canSend, style: btnStyle(canSend) }, cooldown > 0 ? `Reenviar en ${cooldown}s` : "Enviar c\xF3digo")), step === "sending" && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "20px 0" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.4), letterSpacing: "0.08em" } }, "Enviando c\xF3digo\xB7\xB7\xB7")), step === "sent" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: "0.04em", textTransform: "uppercase" } }, "Ingres\xE1 el c\xF3digo"), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 18 } }, "C\xF3digo enviado a ", /* @__PURE__ */ React.createElement("span", { style: { color: T.fg, fontWeight: 700 } }, masked), ".", /* @__PURE__ */ React.createElement("br", null), "V\xE1lido por 10 minutos."), errMsg && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 10, lineHeight: 1.5 } }, errMsg), /* @__PURE__ */ React.createElement(
-    "input",
-    {
-      ref: inputRef,
-      autoFocus: true,
-      type: "text",
-      inputMode: "numeric",
-      maxLength: 6,
-      value: code,
-      onChange: (e) => {
-        setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
-        setErrMsg("");
-      },
-      onKeyDown: (e) => e.key === "Enter" && code.length === 6 && verify(),
-      placeholder: "000000",
-      style: {
-        width: "100%",
-        padding: "14px 12px",
-        boxSizing: "border-box",
-        background: fade(T, 0.04),
-        border: `1.5px solid ${fade(T, 0.13)}`,
-        borderRadius: 10,
-        fontSize: 28,
-        fontFamily: "Nunito, monospace",
-        fontWeight: 800,
-        textAlign: "center",
-        letterSpacing: "0.35em",
-        color: T.fg,
-        outline: "none",
-        marginBottom: 12,
-        transition: "border-color .15s ease"
-      },
-      onFocus: (e) => e.target.style.borderColor = "#0E6B70",
-      onBlur: (e) => e.target.style.borderColor = fade(T, 0.13)
-    }
-  ), /* @__PURE__ */ React.createElement("button", { onClick: verify, disabled: code.length < 6, style: btnStyle(code.length === 6) }, "Verificar \u2192"), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      onClick: () => {
-        if (canSend) {
-          setStep("idle");
-          setCode("");
-          setErrMsg("");
-        }
-      },
-      disabled: !canSend && sends >= OTP_MAX_SENDS,
-      style: { display: "block", width: "100%", marginTop: 10, background: "transparent", border: "none", padding: "8px", color: fade(T, canSend ? 0.45 : 0.25), fontFamily: "Nunito", fontSize: 11, cursor: canSend ? "pointer" : "default", letterSpacing: "0.04em" }
-    },
-    sends >= OTP_MAX_SENDS ? "L\xEDmite alcanzado" : cooldown > 0 ? `\u2190 Reenviar en ${cooldown}s` : "\u2190 Reenviar c\xF3digo"
-  ))), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", textAlign: "center", marginTop: 20, fontSize: 10, color: fade(T, 0.28), letterSpacing: "0.1em" } }, "Para Ale \u2764")));
+  return /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100vh", background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "Nunito, system-ui, sans-serif", position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement(DecoDots, { T }), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 360, position: "relative", zIndex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { background: T.cardBg, borderRadius: 16, padding: "28px 24px", border: `1px solid ${fade(T, 0.08)}`, boxShadow: `0 8px 32px ${fade(T, 0.07)}` } },
+    step === "idle" && /* @__PURE__ */ React.createElement(React.Fragment, null,
+      /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: "0.04em", textTransform: "uppercase" } }, "Acceso privado"),
+      /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 16 } }, "Ingres\xE1 tu email para recibir el c\xF3digo de acceso"),
+      /* @__PURE__ */ React.createElement("input", {
+        type: "email",
+        inputMode: "email",
+        autoFocus: true,
+        autoComplete: "email",
+        value: email,
+        placeholder: "tu@email.com",
+        onChange: (e) => { setEmail(e.target.value); setErrMsg(""); },
+        onFocus: () => setEmailFocused(true),
+        onBlur: () => { setEmailFocused(false); setEmailTouched(true); },
+        onKeyDown: (e) => e.key === "Enter" && canSend && sendOtp(),
+        style: emailInputStyle
+      }),
+      emailErr && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 14, lineHeight: 1.4 } }, "Ingres\xE1 un email v\xE1lido (ej: nombre@dominio.com)"),
+      errMsg && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 12, lineHeight: 1.5 } }, errMsg),
+      sends >= OTP_MAX_SENDS
+        ? /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", textAlign: "center", padding: "12px 0", lineHeight: 1.6 } }, "L\xEDmite de env\xEDos alcanzado.", /* @__PURE__ */ React.createElement("br", null), "Intent\xE1 de nuevo m\xE1s tarde.")
+        : /* @__PURE__ */ React.createElement("button", { onClick: sendOtp, disabled: !canSend, style: btnStyle(canSend) }, cooldown > 0 ? `Reenviar en ${cooldown}s` : "Enviar c\xF3digo")
+    ),
+    step === "sending" && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "20px 0" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.4), letterSpacing: "0.08em" } }, "Enviando c\xF3digo\xB7\xB7\xB7")),
+    step === "sent" && /* @__PURE__ */ React.createElement(React.Fragment, null,
+      /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 12, fontWeight: 700, color: T.fg, marginBottom: 6, letterSpacing: "0.04em", textTransform: "uppercase" } }, "Ingres\xE1 el c\xF3digo"),
+      /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.58), lineHeight: 1.6, marginBottom: 18 } }, "C\xF3digo enviado a ", /* @__PURE__ */ React.createElement("span", { style: { color: T.fg, fontWeight: 700 } }, masked), ".", /* @__PURE__ */ React.createElement("br", null), "V\xE1lido por 10 minutos."),
+      errMsg && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: "#E8602C", marginBottom: 10, lineHeight: 1.5 } }, errMsg),
+      /* @__PURE__ */ React.createElement("input", {
+        ref: inputRef,
+        autoFocus: true,
+        type: "text",
+        inputMode: "numeric",
+        maxLength: 6,
+        value: code,
+        onChange: (e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrMsg(""); },
+        onKeyDown: (e) => e.key === "Enter" && code.length === 6 && verify(),
+        placeholder: "000000",
+        style: { width: "100%", padding: "14px 12px", boxSizing: "border-box", background: fade(T, 0.04), border: `1.5px solid ${fade(T, 0.13)}`, borderRadius: 10, fontSize: 28, fontFamily: "Nunito, monospace", fontWeight: 800, textAlign: "center", letterSpacing: "0.35em", color: T.fg, outline: "none", marginBottom: 12, transition: "border-color .15s ease" },
+        onFocus: (e) => e.target.style.borderColor = "#0E6B70",
+        onBlur: (e) => e.target.style.borderColor = fade(T, 0.13)
+      }),
+      /* @__PURE__ */ React.createElement("button", { onClick: verify, disabled: code.length < 6, style: btnStyle(code.length === 6) }, "Verificar \u2192"),
+      /* @__PURE__ */ React.createElement("button", {
+        onClick: () => { if (canSend) { setStep("idle"); setCode(""); setErrMsg(""); } },
+        disabled: !canSend && sends >= OTP_MAX_SENDS,
+        style: { display: "block", width: "100%", marginTop: 10, background: "transparent", border: "none", padding: "8px", color: fade(T, canSend ? 0.45 : 0.25), fontFamily: "Nunito", fontSize: 11, cursor: canSend ? "pointer" : "default", letterSpacing: "0.04em" }
+      }, sends >= OTP_MAX_SENDS ? "L\xEDmite alcanzado" : cooldown > 0 ? `\u2190 Reenviar en ${cooldown}s` : "\u2190 Reenviar c\xF3digo")
+    )
+  ), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", textAlign: "center", marginTop: 20, fontSize: 10, color: fade(T, 0.28), letterSpacing: "0.1em" } }, "Para Ale \u2764")));
 }
 function App() {
   const [authed, setAuthed] = useState(() => {
