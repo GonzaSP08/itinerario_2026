@@ -1600,6 +1600,22 @@ function EmptyFilter({ T }) {
 
 // ─── Footer ───────────────────────────────────────────────────
 function Footer({ accent, T }) {
+  const [rates, setRates] = React.useState(null);
+  const [rateDate, setRateDate] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        setRates({ usd: data.brl.usd, ars: data.brl.ars });
+        setRateDate(data.date);
+      })
+      .catch(() => {});
+  }, []);
+
+  const fmtUSD = (v) => v < 1 ? v.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') : v.toFixed(2);
+  const fmtARS = (v) => Math.round(v).toLocaleString('es-AR');
+
   return (
     <div style={{ padding: '32px 22px 40px', textAlign: 'center' }}>
       <Serif style={{ display: 'block', fontSize: 28, color: T.fg, fontStyle: 'italic', letterSpacing: '-0.01em' }}>
@@ -1609,7 +1625,20 @@ function Footer({ accent, T }) {
         Para Ale ❤️
       </Mono>
       <div style={{ height: 24 }} />
-      <Mono style={{ fontSize: 9, color: fade(T, 0.25), letterSpacing: '0.16em' }}>— {TRIP.country} —</Mono>
+      {rates ? (
+        <div>
+          <Mono style={{ fontSize: 11, color: fade(T, 0.55), letterSpacing: '0.04em' }}>
+            1 R$ 🇧🇷 &nbsp;=&nbsp; {fmtUSD(rates.usd)} USD 🇺🇸 &nbsp;=&nbsp; $ {fmtARS(rates.ars)} 🇦🇷
+          </Mono>
+          {rateDate && (
+            <Mono style={{ display: 'block', marginTop: 5, fontSize: 9, color: fade(T, 0.25), letterSpacing: '0.08em' }}>
+              {rateDate}
+            </Mono>
+          )}
+        </div>
+      ) : (
+        <Mono style={{ fontSize: 9, color: fade(T, 0.2), letterSpacing: '0.1em' }}>···</Mono>
+      )}
     </div>
   );
 }
