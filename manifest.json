@@ -2,7 +2,7 @@
   "name": "Cumple Ale 2026 — Brasil",
   "short_name": "Brasil 2026",
   "description": "Itinerario de viaje a Brasil, julio 2026",
-  "start_url": "/itinerario-brasil.html",
+  "start_url": "/main",
   "display": "standalone",
   "background_color": "#FAF8F6",
   "theme_color": "#0E6B70",
