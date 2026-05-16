@@ -1,7 +1,7 @@
 const ALLOWED_ORIGIN = "https://ales-birthday.pages.dev";
 const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
 const FLIGHT_RE = /^[A-Z0-9]{2}\d{1,4}$/i;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 function corsHeaders() {
   return {
@@ -31,6 +31,11 @@ export default {
 
     // POST /send-otp
     if (req.method === "POST" && url.pathname === "/send-otp") {
+      // Guard missing env vars
+      if (!env.EMAILJS_SVC_ID || !env.EMAILJS_TPL_ID || !env.EMAILJS_PUB_KEY || !env.EMAILJS_PRIV_KEY) {
+        return cors(JSON.stringify({ ok: false }), 503);
+      }
+
       let body;
       try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400); }
       const { to_email, otp_code } = body;
@@ -45,19 +50,22 @@ export default {
         return cors(JSON.stringify({ ok: false }), 400);
       }
 
-      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service_id: env.EMAILJS_SVC_ID,
-          template_id: env.EMAILJS_TPL_ID,
-          user_id: env.EMAILJS_PUB_KEY,
-          accessToken: env.EMAILJS_PRIV_KEY,
-          template_params: { to_email: normalizedEmail, otp_code, app_name: "Itinerario Brasil 2026" },
-        }),
-      });
-
-      return cors(JSON.stringify({ ok: res.ok }), res.ok ? 200 : 502);
+      try {
+        const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: env.EMAILJS_SVC_ID,
+            template_id: env.EMAILJS_TPL_ID,
+            user_id: env.EMAILJS_PUB_KEY,
+            accessToken: env.EMAILJS_PRIV_KEY,
+            template_params: { to_email: normalizedEmail, otp_code, app_name: "Itinerario Brasil 2026" },
+          }),
+        });
+        return cors(JSON.stringify({ ok: res.ok }), res.ok ? 200 : 502);
+      } catch {
+        return cors(JSON.stringify({ ok: false }), 502);
+      }
     }
 
     // GET /flight/:number/:date
@@ -70,20 +78,23 @@ export default {
         return cors(JSON.stringify({ error: "Invalid params" }), 400);
       }
 
-      const res = await fetch(
-        `https://aerodatabox.p.rapidapi.com/flights/Number/${flightNum}/${date}`,
-        { headers: { "x-rapidapi-host": "aerodatabox.p.rapidapi.com", "x-rapidapi-key": env.RAPIDAPI_KEY } }
-      );
-
-      const data = await res.text();
-      return new Response(data, {
-        status: res.status,
-        headers: {
-          ...corsHeaders(),
-          "Content-Type": res.headers.get("Content-Type") || "application/json",
-          "Cache-Control": "public, max-age=300",
-        },
-      });
+      try {
+        const res = await fetch(
+          `https://aerodatabox.p.rapidapi.com/flights/Number/${flightNum}/${date}`,
+          { headers: { "x-rapidapi-host": "aerodatabox.p.rapidapi.com", "x-rapidapi-key": env.RAPIDAPI_KEY } }
+        );
+        const data = await res.text();
+        return new Response(data, {
+          status: res.status,
+          headers: {
+            ...corsHeaders(),
+            "Content-Type": "application/json",
+            "Cache-Control": "public, max-age=300",
+          },
+        });
+      } catch {
+        return cors(JSON.stringify({ error: "Upstream error" }), 502);
+      }
     }
 
     return new Response("Not found", { status: 404 });
