@@ -746,9 +746,11 @@ const FLIGHT_STATUS_LABELS = {
   Delayed: { label: "Demorado", tone: "warn" }
 };
 function fetchFlightStatus(f) {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 8000);
   return fetch(
     `${WORKER_URL}/flight/${f.flightNumber}/${f.isoDate}`,
-    {}
+    { signal: controller.signal }
   ).then((r) => r.ok ? r.json() : r.json().then((e) => Promise.reject((e == null ? void 0 : e.message) || `HTTP ${r.status}`))).then((json) => ({ id: f.id, data: Array.isArray(json) ? json[0] : null, error: null })).catch((err) => ({ id: f.id, data: null, error: String(err) }));
 }
 function localTime(isoStr) {
@@ -1311,10 +1313,13 @@ function LoginScreen({ onAuth }) {
     setErrMsg("");
     const otp = String(Math.floor(1e5 + Math.random() * 9e5));
     try {
+      const otpController = new AbortController();
+      setTimeout(() => otpController.abort(), 8000);
       const res = await fetch(`${WORKER_URL}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to_email: email.trim(), otp_code: otp }),
+        signal: otpController.signal,
       });
       if (!res.ok) throw new Error("worker_error");
       setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
@@ -1363,7 +1368,7 @@ function LoginScreen({ onAuth }) {
     border: "none",
     borderRadius: 10,
     background: active ? "#0E6B70" : fade(T, 0.09),
-    color: active ? "#fff" : fade(T, 0.3),
+    color: active ? "#fff" : fade(T, 0.7),
     fontFamily: "Nunito, system-ui, sans-serif",
     fontSize: 13,
     fontWeight: 700,
@@ -1384,7 +1389,6 @@ function LoginScreen({ onAuth }) {
     fontFamily: "Nunito, system-ui, sans-serif",
     fontWeight: 600,
     color: T.fg,
-    outline: "none",
     marginBottom: emailInvalid ? 6 : 16,
     transition: "border-color .15s ease"
   };
@@ -1436,7 +1440,7 @@ function LoginScreen({ onAuth }) {
       /* @__PURE__ */ React.createElement("button", {
         onClick: () => { if (canSend) { setStep("idle"); setCode(""); setErrMsg(""); } },
         disabled: !canSend && sends >= OTP_MAX_SENDS,
-        style: { display: "block", width: "100%", marginTop: 10, background: "transparent", border: "none", padding: "8px", color: fade(T, canSend ? 0.45 : 0.25), fontFamily: "Nunito", fontSize: 11, cursor: canSend ? "pointer" : "default", letterSpacing: "0.04em" }
+        style: { display: "block", width: "100%", marginTop: 10, background: "transparent", border: "none", padding: "12px 8px", color: fade(T, canSend ? 0.45 : 0.25), fontFamily: "Nunito", fontSize: 11, cursor: canSend ? "pointer" : "default", letterSpacing: "0.04em" }
       }, sends >= OTP_MAX_SENDS ? "L\xEDmite alcanzado" : cooldown > 0 ? `\u2190 Reenviar en ${cooldown}s` : "\u2190 Reenviar c\xF3digo")
     )
   ), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", textAlign: "center", marginTop: 20, fontSize: 10, color: fade(T, 0.28), letterSpacing: "0.1em" } }, "Para Ale \u2764")));
