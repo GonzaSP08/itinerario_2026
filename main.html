@@ -273,7 +273,7 @@ const STAYS = [
   { id: "st1", city: "Foz do Igua\xE7u", name: "JL Hotel by Bourbon", type: "Hotel \xB7 Foz do Igua\xE7u", nights: 1, checkIn: "Mi\xE9 08 jul", checkOut: "Jue 09 jul", address: "Av. Costa e Silva, 154 \xB7 Foz do Igua\xE7u, PR 85863-762", tbd: false, status: "Confirmado", mapsUrl: "https://www.google.com/maps/search/?api=1&query=-25.5337114%2C-54.5746858", website: "https://www.jlhotelbybourbon.com.br/home", booking: "https://www.booking.com/hotel/br/bourbon-foz-do-iguacu-business.html?checkin=2026-07-08&checkout=2026-07-09&group_adults=2&no_rooms=1" },
   { id: "st2", city: "S\xE3o Paulo", name: "Alameda Lorena, 718", apt: "Apto. 1010", type: "Airbnb \xB7 S\xE3o Paulo", nights: 4, checkIn: "Jue 09 jul", checkInTime: "15:00", checkOut: "Lun 13 jul", checkOutTime: "11:00", address: "Alameda Lorena, 718 \xB7 S\xE3o Paulo, SP 01424-002", tbd: false, status: "Confirmado", mapsUrl: "https://www.google.com/maps/search/?api=1&query=-23.568803341235984%2C-46.660188138484955", airbnb: "https://www.airbnb.com.ar/rooms/1538749038282984382?guests=1&adults=1&s=67&unique_share_id=ae6044fe-4480-4be8-bd81-3b3af0608b5e" },
   { id: "st3", city: "Rio de Janeiro", name: "Rua Sousa Lima, 16", apt: "Apto. 1003", type: "Airbnb \xB7 Rio de Janeiro", nights: 6, checkIn: "Lun 13 jul", checkInTime: "14:00", checkOut: "Dom 19 jul", checkOutTime: "11:00", address: "Rua Sousa Lima, 16 \xB7 Rio de Janeiro, RJ 22081-010", tbd: false, status: "Confirmado", mapsUrl: "https://www.google.com/maps/search/?api=1&query=-22.98174285888672%2C-43.19001770019531", airbnb: "https://www.airbnb.com.ar/rooms/7342274?guests=1&adults=1&s=67&unique_share_id=754af553-e290-4915-af3b-c9fa2c5430ac" },
-  { id: "st4", city: "Foz do Igua\xE7u", name: "Por definir", type: "Alojamiento \xB7 Foz do Igua\xE7u", nights: 1, checkIn: "19 jul", checkOut: "20 jul", address: "Foz do Igua\xE7u, PR \xB7 Brasil", tbd: true, status: "Pendiente", booking: "https://www.booking.com/searchresults.html?ss=Foz+do+Igua%C3%A7u%2C+Brazil&checkin=2026-07-19&checkout=2026-07-20&group_adults=2&no_rooms=1" }
+  { id: "st4", city: "Foz do Igua\xE7u", name: "JL Hotel by Bourbon", type: "Hotel \xB7 Foz do Igua\xE7u", nights: 1, checkIn: "Dom 19 jul", checkOut: "Lun 20 jul", address: "Av. Costa e Silva, 154 \xB7 Foz do Igua\xE7u, PR 85863-762", tbd: false, status: "Confirmado", mapsUrl: "https://www.google.com/maps/search/?api=1&query=-25.5337114%2C-54.5746858", website: "https://www.jlhotelbybourbon.com.br/home", booking: "https://www.booking.com/hotel/br/bourbon-foz-do-iguacu-business.html?checkin=2026-07-19&checkout=2026-07-20&group_adults=2&no_rooms=1" }
 ];
 const ACTIVITIES = [
   // São Paulo
@@ -701,7 +701,14 @@ function TransportActions({ query, T, accent, airbnbUrl, mapsUrl, bookingUrl, we
   const coordMatch = mapsUrl && mapsUrl.match(/query=([-\d.]+)%2C([-\d.]+)/);
   const lat = coordMatch ? coordMatch[1] : null;
   const lng = coordMatch ? coordMatch[2] : null;
-  const uber = lat && lng ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
+  const uberWeb = lat && lng ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
+  const uberScheme = lat && lng ? `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
+  const handleUber = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.location.href = uberScheme;
+    setTimeout(() => window.open(uberWeb, "_blank"), 1500);
+  };
   const cabifyScheme = lat && lng ? `cabify://route/new?stops[0][loc]=${lat},${lng}&stops[0][label]=${enc}` : null;
   const cabifyWeb = `https://cabify.com/es/cities`;
   const handleCabify = (e) => {
@@ -746,7 +753,8 @@ function TransportActions({ query, T, accent, airbnbUrl, mapsUrl, bookingUrl, we
   ), /* @__PURE__ */ React.createElement(
     Chip,
     {
-      href: uber,
+      href: uberWeb,
+      onClick: handleUber,
       label: "Uber",
       color: T.dark ? "#fff" : "#000",
       icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "uber", color: uberColor })
