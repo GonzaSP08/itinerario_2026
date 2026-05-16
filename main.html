@@ -116,7 +116,7 @@ function useTweaks(defaults) {
   const setTweak = React.useCallback((keyOrEdits, val) => {
     const edits = typeof keyOrEdits === "object" && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
     setValues((prev) => __spreadValues(__spreadValues({}, prev), edits));
-    window.parent.postMessage({ type: "__edit_mode_set_keys", edits }, window.location.origin || "*");
+    window.parent.postMessage({ type: "__edit_mode_set_keys", edits }, "https://ales-birthday.pages.dev");
     window.dispatchEvent(new CustomEvent("tweakchange", { detail: edits }));
   }, []);
   return [values, setTweak];
@@ -819,7 +819,7 @@ function PassengerRow({ pax, accent, T }) {
     /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "5px 0" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg, flex: 1 } }, pax.name),
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, fontWeight: 700, color: accent, background: `${accent}14`, border: `1px solid ${accent}30`, borderRadius: 6, padding: "2px 8px", letterSpacing: "0.06em" } }, pax.seat),
-      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "6px 8px", color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", transition: "color .15s" } }, "ⓘ")
+      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "10px 12px", color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", transition: "color .15s" } }, "ⓘ")
     ),
     open && /* @__PURE__ */ React.createElement("div", { style: { margin: "2px 0 8px", padding: "8px 12px", background: fade(T, 0.04), borderRadius: 8, borderLeft: `2px solid ${accent}`, animation: "expandin .15s ease" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 } }, "Equipaje incluido"),
@@ -1319,13 +1319,14 @@ function LoginScreen({ onAuth }) {
     const arr = new Uint32Array(1); crypto.getRandomValues(arr); const otp = String(arr[0] % 9e5 + 1e5 | 0).padStart(6, "0");
     try {
       const otpController = new AbortController();
-      setTimeout(() => otpController.abort(), 8000);
+      const otpTimeout = setTimeout(() => otpController.abort(), 8000);
       const res = await fetch(`${WORKER_URL}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to_email: email.trim(), otp_code: otp }),
         signal: otpController.signal,
       });
+      clearTimeout(otpTimeout);
       if (!res.ok) throw new Error("worker_error");
       setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
       setSends((s) => s + 1);
@@ -1337,6 +1338,7 @@ function LoginScreen({ onAuth }) {
         return (_a = inputRef.current) == null ? void 0 : _a.focus();
       }, 80);
     } catch (e) {
+      clearTimeout(otpTimeout);
       setStep("idle");
       setErrMsg(e && e.message === "worker_error"
         ? "No se pudo enviar el c\xF3digo. Intent\xE1 de nuevo en unos minutos."
