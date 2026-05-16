@@ -1,18 +1,19 @@
 const ALLOWED_ORIGIN = "https://ales-birthday.pages.dev";
-const FLIGHT_RE = /^[A-Z0-9]{2,8}$/i;
+const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
+const FLIGHT_RE = /^[A-Z]{2}\d{1,4}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-function corsHeaders(origin) {
+function corsHeaders() {
   return {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
 
-function cors(body, status, origin) {
-  return new Response(body, { status, headers: corsHeaders(origin) });
+function cors(body, status) {
+  return new Response(body, { status, headers: corsHeaders() });
 }
 
 export default {
@@ -25,15 +26,24 @@ export default {
     }
 
     if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
     // POST /send-otp
     if (req.method === "POST" && url.pathname === "/send-otp") {
       let body;
-      try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400, origin); }
+      try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400); }
       const { to_email, otp_code } = body;
-      if (!to_email || !otp_code) return cors(JSON.stringify({ ok: false }), 400, origin);
+      if (!to_email || !otp_code) return cors(JSON.stringify({ ok: false }), 400);
+
+      // Server-side allowlist — client validation is not sufficient
+      const normalizedEmail = String(to_email).trim().toLowerCase();
+      if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
+        return cors(JSON.stringify({ ok: false }), 403);
+      }
+      if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(normalizedEmail)) {
+        return cors(JSON.stringify({ ok: false }), 400);
+      }
 
       const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
         method: "POST",
@@ -42,11 +52,11 @@ export default {
           service_id: env.EMAILJS_SVC_ID,
           template_id: env.EMAILJS_TPL_ID,
           user_id: env.EMAILJS_PUB_KEY,
-          template_params: { to_email, otp_code, app_name: "Itinerario Brasil 2026" },
+          template_params: { to_email: normalizedEmail, otp_code, app_name: "Itinerario Brasil 2026" },
         }),
       });
 
-      return cors(JSON.stringify({ ok: res.ok }), res.ok ? 200 : 502, origin);
+      return cors(JSON.stringify({ ok: res.ok }), res.ok ? 200 : 502);
     }
 
     // GET /flight/:number/:date
@@ -54,9 +64,9 @@ export default {
       const parts = url.pathname.split("/").filter(Boolean);
       const flightNum = parts[1];
       const date = parts[2];
-      if (!flightNum || !date) return cors(JSON.stringify({ error: "Missing params" }), 400, origin);
+      if (!flightNum || !date) return cors(JSON.stringify({ error: "Missing params" }), 400);
       if (!FLIGHT_RE.test(flightNum) || !DATE_RE.test(date)) {
-        return cors(JSON.stringify({ error: "Invalid params" }), 400, origin);
+        return cors(JSON.stringify({ error: "Invalid params" }), 400);
       }
 
       const res = await fetch(
@@ -68,7 +78,7 @@ export default {
       return new Response(data, {
         status: res.status,
         headers: {
-          ...corsHeaders(origin),
+          ...corsHeaders(),
           "Content-Type": res.headers.get("Content-Type") || "application/json",
           "Cache-Control": "public, max-age=300",
         },
