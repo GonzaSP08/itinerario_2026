@@ -1527,7 +1527,7 @@ function FrasesContent({ T, accent }) {
   const allCats = [...new Set(FRASES.map((f) => f.cat))];
   const [activeFilter, setActiveFilter] = React.useState(["Saludos"]);
   const [speakingId, setSpeakingId] = React.useState(null);
-  const toggleCat = (cat) => setActiveFilter((f) => f.includes(cat) ? f.filter((c) => c !== cat) : [...f, cat]);
+  const toggleCat = (cat) => setActiveFilter([cat]);
   const speak = (id, text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
