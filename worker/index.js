@@ -52,6 +52,7 @@ export default {
           service_id: env.EMAILJS_SVC_ID,
           template_id: env.EMAILJS_TPL_ID,
           user_id: env.EMAILJS_PUB_KEY,
+          accessToken: env.EMAILJS_PRIV_KEY,
           template_params: { to_email: normalizedEmail, otp_code, app_name: "Itinerario Brasil 2026" },
         }),
       });
