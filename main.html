@@ -548,13 +548,7 @@ const FRASES = [
   { id: "fr27", cat: "Pagos", pt: "Aceita Pix?", ph: "a-SEI-ta PIKS?", es: "\xBFAcepta Pix?" },
   { id: "fr28", cat: "Pagos", pt: "Tem QR code?", ph: "teng ke-\xC9-rre K\xD3-de?", es: "\xBFTiene QR? → Q se dice “ke”" },
   { id: "fr29", cat: "Pagos", pt: "Cart\xE3o de cr\xE9dito / d\xE9bito?", ph: "kar-T\xC3U de KR\xC9-di-tu / D\xC9-bi-tu?", es: "\xBFTarjeta de cr\xE9dito / d\xE9bito?" },
-  { id: "fr30", cat: "Pagos", pt: "Tem troco?", ph: "teng TR\xD3-ku?", es: "\xBFTiene cambio / vuelto?" },
-  { id: "fr31", cat: "Emergencias", pt: "Socorro!", ph: "so-K\xD3-rru!", es: "\xA1Socorro!" },
-  { id: "fr32", cat: "Emergencias", pt: "Chame a pol\xEDcia!", ph: "SH\xC1-me a po-L\xCD-sia!", es: "\xA1Llame a la polic\xEDa!" },
-  { id: "fr33", cat: "Emergencias", pt: "Preciso de um m\xE9dico", ph: "pre-S\xCD-zu de um M\xCA-ji-ku", es: "Necesito un m\xE9dico" },
-  { id: "fr34", cat: "Emergencias", pt: "Me roubaram", ph: "me rro-B\xC1-rang", es: "Me robaron" },
-  { id: "fr35", cat: "Emergencias", pt: "Onde \xE9 o hospital?", ph: "ON-de \xCA u os-pi-T\xC1L?", es: "\xBFD\xF3nde est\xE1 el hospital?" },
-  { id: "fr36", cat: "Emergencias", pt: "Perdi meu passaporte", ph: "per-J\xCD MEU pa-sa-P\xD3R-te", es: "Perd\xED mi pasaporte" }
+  { id: "fr30", cat: "Pagos", pt: "Tem troco?", ph: "teng TR\xD3-ku?", es: "\xBFTiene cambio / vuelto?" }
 ];
 const SECTIONS = [
   { id: "vuelos", label: "Vuelos", count: FLIGHTS.length, span: "09 jul \xB7 13 jul \xB7 19 jul", meta: "GOL \xB7 3 tramos directos", color: "#0E6B70" },
@@ -564,7 +558,7 @@ const SECTIONS = [
   { id: "shoppings", label: "Shoppings", count: SHOPPINGS.length, span: "SP \xB7 RJ", meta: "10 por ciudad", color: "#9B59B6" },
   { id: "comidas", label: "Comidas", count: MEALS.length, span: "SP \xB7 RJ", meta: "20 por categor\xEDa \xB7 2 ciudades", color: "#E8602C" },
   { id: "clima", label: "Clima", count: WEATHER_FORECAST_DAYS, span: "Posadas \xB7 Foz \xB7 SP \xB7 RJ", meta: `Pron\xF3stico ${WEATHER_FORECAST_DAYS} d\xEDas`, color: "#0891B2" },
-  { id: "frases", label: "Frases \xFAtiles", count: FRASES.length, span: "Saludos \xB7 Resto \xB7 Emergencias", meta: "Con pronunciaci\xF3n fon\xE9tica", color: "#16A085" }
+  { id: "frases", label: "Frases \xFAtiles", count: FRASES.length, span: "Saludos \xB7 Restaurante \xB7 Pagos", meta: "Con pronunciaci\xF3n fon\xE9tica", color: "#16A085" }
 ];
 function getDaysUntil(dateStr) {
   const [day, month, year] = dateStr.split(".");
@@ -1271,7 +1265,7 @@ function SectionSkeleton({ T }) {
     height: i === 0 ? 80 : 68
   } })));
 }
-const FRASES_CAT_COLORS = { "Saludos": "#16A085", "N\xFAmeros": "#2A5298", "Restaurante": "#E8602C", "Transporte": "#F0C030", "Pagos": "#0E6B70", "Emergencias": "#D81B60" };
+const FRASES_CAT_COLORS = { "Saludos": "#16A085", "N\xFAmeros": "#2A5298", "Restaurante": "#E8602C", "Transporte": "#F0C030", "Pagos": "#0E6B70" };
 function FrasesContent({ T, accent }) {
   const allCats = [...new Set(FRASES.map((f) => f.cat))];
   const [activeFilter, setActiveFilter] = React.useState([]);
