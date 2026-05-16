@@ -600,7 +600,7 @@ function TransportActions({ query, T, accent, airbnbUrl, mapsUrl, bookingUrl }) 
   const coordMatch = mapsUrl && mapsUrl.match(/query=([-\d.]+)%2C([-\d.]+)/);
   const lat = coordMatch ? coordMatch[1] : null;
   const lng = coordMatch ? coordMatch[2] : null;
-  const uber = lat && lng ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff%5Bformatted_address%5D=${enc}&dropoff%5Blatitude%5D=${lat}&dropoff%5Blongitude%5D=${lng}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff%5Bformatted_address%5D=${enc}`;
+  const uber = lat && lng ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
   const cabifyScheme = lat && lng ? `cabify://route/new?stops[0][loc]=${lat},${lng}&stops[0][label]=${enc}` : null;
   const cabifyWeb = `https://cabify.com/es/cities`;
   const handleCabify = (e) => {
