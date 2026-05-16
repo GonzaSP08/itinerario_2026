@@ -1,15 +1,18 @@
 const ALLOWED_ORIGIN = "https://ales-birthday.pages.dev";
+const FLIGHT_RE = /^[A-Z0-9]{2,8}$/i;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function corsHeaders(origin) {
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
 
 function cors(body, status, origin) {
-  return new Response(body, {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": origin === ALLOWED_ORIGIN ? origin : "",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return new Response(body, { status, headers: corsHeaders(origin) });
 }
 
 export default {
@@ -17,8 +20,13 @@ export default {
     const origin = req.headers.get("Origin") || "";
     const url = new URL(req.url);
 
-    if (req.method === "OPTIONS") return cors(null, 204, origin);
-    if (origin !== ALLOWED_ORIGIN) return new Response("Forbidden", { status: 403 });
+    if (origin !== ALLOWED_ORIGIN) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
 
     // POST /send-otp
     if (req.method === "POST" && url.pathname === "/send-otp") {
@@ -47,6 +55,9 @@ export default {
       const flightNum = parts[1];
       const date = parts[2];
       if (!flightNum || !date) return cors(JSON.stringify({ error: "Missing params" }), 400, origin);
+      if (!FLIGHT_RE.test(flightNum) || !DATE_RE.test(date)) {
+        return cors(JSON.stringify({ error: "Invalid params" }), 400, origin);
+      }
 
       const res = await fetch(
         `https://aerodatabox.p.rapidapi.com/flights/Number/${flightNum}/${date}`,
@@ -54,7 +65,14 @@ export default {
       );
 
       const data = await res.text();
-      return cors(data, res.status, origin);
+      return new Response(data, {
+        status: res.status,
+        headers: {
+          ...corsHeaders(origin),
+          "Content-Type": res.headers.get("Content-Type") || "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      });
     }
 
     return new Response("Not found", { status: 404 });

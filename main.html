@@ -35,6 +35,9 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #0a1024; }
+  }
 </style>
 </head>
 <body>
@@ -77,7 +80,7 @@ const __TWEAKS_STYLE = `
     padding:10px 8px 10px 14px;cursor:move;user-select:none}
   .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
   .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
-    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+    width:32px;height:32px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
   .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
   .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
     overflow-y:auto;overflow-x:hidden;min-height:0;
@@ -550,7 +553,7 @@ function Hero({ accent, T, onToggleDark }) {
     {
       onClick: onToggleDark,
       "aria-label": T.dark ? "Activar modo claro" : "Activar modo oscuro",
-      style: { width: 30, height: 30, borderRadius: 99, border: `1px solid ${fade(T, 0.18)}`, background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: fade(T, 0.75), padding: 0, transition: "border-color .2s ease, background .2s ease, color .2s ease" },
+      style: { width: 36, height: 36, borderRadius: 99, border: `1px solid ${fade(T, 0.18)}`, background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: fade(T, 0.75), padding: 0, transition: "border-color .2s ease, background .2s ease, color .2s ease" },
       onMouseEnter: (e) => {
         e.currentTarget.style.borderColor = accent;
         e.currentTarget.style.color = accent;
@@ -814,7 +817,7 @@ function PassengerRow({ pax, accent, T }) {
     /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "5px 0" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg, flex: 1 } }, pax.name),
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, fontWeight: 700, color: accent, background: `${accent}14`, border: `1px solid ${accent}30`, borderRadius: 6, padding: "2px 8px", letterSpacing: "0.06em" } }, pax.seat),
-      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "2px 4px", color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", transition: "color .15s" } }, "ⓘ")
+      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "6px 8px", color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", transition: "color .15s" } }, "ⓘ")
     ),
     open && /* @__PURE__ */ React.createElement("div", { style: { margin: "2px 0 8px", padding: "8px 12px", background: fade(T, 0.04), borderRadius: 8, borderLeft: `2px solid ${accent}`, animation: "expandin .15s ease" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 } }, "Equipaje incluido"),
@@ -971,12 +974,15 @@ function WeatherContent({ T, accent }) {
   const fetchAll = React.useCallback(() => {
     setLoading(true);
     setExpandedDay(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     Promise.all(WEATHER_CITIES.map(
-      (city) => fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=${WEATHER_FORECAST_DAYS}`).then((r) => {
+      (city) => fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&timezone=${encodeURIComponent(city.tz)}&forecast_days=${WEATHER_FORECAST_DAYS}`, { signal: controller.signal }).then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
       }).then((json) => ({ id: city.id, daily: json.daily })).catch(() => ({ id: city.id, daily: null }))
     )).then((results) => {
+      clearTimeout(timeout);
       if (!mountedRef.current) return;
       const map = {};
       results.forEach((r) => {
@@ -985,7 +991,7 @@ function WeatherContent({ T, accent }) {
       setWeather(map);
       setLoading(false);
       setLastUpdate((/* @__PURE__ */ new Date()).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }));
-    });
+    }).catch(() => clearTimeout(timeout));
   }, []);
   React.useEffect(() => {
     fetchAll();
@@ -1002,7 +1008,9 @@ function WeatherContent({ T, accent }) {
     try { const cached = JSON.parse(localStorage.getItem(lsKey) || "null"); if (cached && cached.ts && Date.now() - cached.ts < HOURLY_TTL) { setHourlyCache((prev) => __spreadProps(__spreadValues({}, prev), { [cacheKey]: cached.slots })); return; } } catch (e) {}
     const city = WEATHER_CITIES.find((c) => c.id === activeCity);
     setHourlyLoading(true);
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode&timezone=${encodeURIComponent(city.tz)}&start_date=${iso}&end_date=${iso}`).then((r) => {
+    const hourlyController = new AbortController();
+    setTimeout(() => hourlyController.abort(), 8000);
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode&timezone=${encodeURIComponent(city.tz)}&start_date=${iso}&end_date=${iso}`, { signal: hourlyController.signal }).then((r) => {
       if (!r.ok) throw new Error();
       return r.json();
     }).then((json) => {
@@ -1026,7 +1034,7 @@ function WeatherContent({ T, accent }) {
     });
   }, [expandedDay, activeCity]);
   const daily = weather[activeCity];
-  return /* @__PURE__ */ React.createElement("div", { onTouchStart: (e) => { touchStartYRef.current = e.touches[0].clientY; }, onTouchMove: (e) => { if (!loading) { const delta = e.touches[0].clientY - touchStartYRef.current; if (delta > 0 && window.scrollY < 10) setPullDelta(Math.min(delta, 80)); } }, onTouchEnd: () => { if (pullDelta > 60) fetchAll(); setPullDelta(0); } }, pullDelta > 0 && /* @__PURE__ */ React.createElement("div", { style: { height: pullDelta * 0.55, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: accent, opacity: pullDelta / 80, transform: pullDelta > 60 ? "rotate(180deg)" : "none", transition: "transform .2s ease, opacity .1s" } }, "↻")), /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" } }, WEATHER_CITIES.map((city) => {
+  return /* @__PURE__ */ React.createElement("div", { onTouchStart: (e) => { touchStartYRef.current = e.touches[0].clientY; }, onTouchMove: (e) => { if (!loading) { const delta = e.touches[0].clientY - touchStartYRef.current; if (delta > 0 && window.scrollY < 10) setPullDelta(Math.min(delta, 80)); } }, onTouchEnd: () => { if (pullDelta > 60) fetchAll(); setPullDelta(0); } }, pullDelta > 0 && /* @__PURE__ */ React.createElement("div", { style: { height: pullDelta * 0.55, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: accent, opacity: pullDelta / 80, transform: pullDelta > 60 ? "rotate(180deg)" : "none", transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "none" : "transform .2s ease, opacity .1s" } }, "↻")), /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" } }, WEATHER_CITIES.map((city) => {
     const on = city.id === activeCity;
     return /* @__PURE__ */ React.createElement("button", { key: city.id, onClick: () => {
       setActiveCity(city.id);
@@ -1223,7 +1231,7 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
   const props = (id) => ({ expanded: expanded === id, onToggle: () => toggleExpand(id), accent, T });
   const visibleCities = cityFilter.length > 0 ? CITIES.filter((c) => cityFilter.includes(c)) : CITIES;
   const GroupedSection = ({ data, Card: CardComp, cardProp }) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), visibleCities.map((city) => {
-    const items = data.filter((x) => x.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+    const items = data.filter((x) => x.city === city).sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
     if (items.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearCityFilter });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: items, T, accent }), items.map((item, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: item.id, delay: i * 35 }, /* @__PURE__ */ React.createElement(CardComp, __spreadValues(__spreadValues({}, { [cardProp]: item }), props(item.id))))));
   }));
@@ -1231,11 +1239,11 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     var _a;
     return /* @__PURE__ */ React.createElement(FadeIn, { key: f.id, delay: i * 60 }, /* @__PURE__ */ React.createElement(FlightCard, __spreadValues({ f, liveStatus: (_a = flightStatuses[f.id]) != null ? _a : null, onRefresh: () => handleRefreshFlight(f.id) }, props(f.id))));
   }), ready && active === "alojamientos" && STAYS.map((s, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: s.id, delay: i * 60 }, /* @__PURE__ */ React.createElement(StayCard, __spreadValues({ s }, props(s.id))))), ready && active === "actividades" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), visibleCities.map((city) => {
-    const acts = ACTIVITIES.filter((a) => a.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+    const acts = ACTIVITIES.filter((a) => a.city === city).sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
     if (acts.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearCityFilter });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts, T, accent }), acts.map((a, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: a.id, delay: i * 35 }, /* @__PURE__ */ React.createElement(ActivityRow, __spreadValues({ a }, props(a.id))))));
   })), ready && active === "museos" && /* @__PURE__ */ React.createElement(GroupedSection, { data: MUSEUMS, Card: MuseumCard, cardProp: "m" }), ready && active === "shoppings" && /* @__PURE__ */ React.createElement(GroupedSection, { data: SHOPPINGS, Card: ShoppingCard, cardProp: "s" }), ready && active === "comidas" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(FilterBar, { filters: cityFilters, active: cityFilter, onToggle: selectCity, accent, T }), /* @__PURE__ */ React.createElement(FilterBar, { filters: catFilters, active: catFilter, onToggle: toggleCat, accent, T }), visibleCities.map((city) => {
-    const meals = (catFilter.length === 0 ? MEALS : MEALS.filter((m) => catFilter.includes(m.category))).filter((m) => m.city === city).sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
+    const meals = (catFilter.length === 0 ? MEALS : MEALS.filter((m) => catFilter.includes(m.category))).filter((m) => m.city === city).sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
     if (meals.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearAllFilters });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: meals, T, accent }), meals.map((m, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: m.id, delay: i * 50 }, /* @__PURE__ */ React.createElement(MealCard, __spreadValues({ m }, props(m.id))))));
   })), ready && active === "clima" && /* @__PURE__ */ React.createElement(WeatherContent, { T, accent }), ready && active === "frases" && /* @__PURE__ */ React.createElement(FrasesContent, { T, accent }));
@@ -1253,7 +1261,9 @@ function Footer({ accent, T }) {
       const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
       if (cached && Date.now() - cached.ts < CACHE_TTL) { setRates(cached.rates); setRateDate(cached.date); return; }
     } catch (e) {}
-    fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json").then((r) => r.ok ? r.json() : Promise.reject()).then((data) => {
+    const currencyController = new AbortController();
+    setTimeout(() => currencyController.abort(), 8000);
+    fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json", { signal: currencyController.signal }).then((r) => r.ok ? r.json() : Promise.reject()).then((data) => {
       const rates = { usd: data.brl.usd, ars: data.brl.ars };
       setRates(rates);
       setRateDate(data.date);
@@ -1287,7 +1297,7 @@ function LoginScreen({ onAuth }) {
     return () => clearTimeout(timerRef.current);
   }, [cooldown]);
   const [emailFocused, setEmailFocused] = React.useState(false);
-  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+  const isValidEmail = (v) => /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v.trim());
   const emailOk = isValidEmail(email);
   const emailAllowed = emailOk && ALLOWED_EMAILS.includes(email.trim().toLowerCase());
   const emailErr = emailTouched && email.length > 0 && !emailOk;
@@ -1318,7 +1328,9 @@ function LoginScreen({ onAuth }) {
       }, 80);
     } catch (e) {
       setStep("idle");
-      setErrMsg("No se pudo enviar el c\xF3digo. Verific\xE1 la config de EmailJS.");
+      setErrMsg(e && e.message === "worker_error"
+        ? "No se pudo enviar el c\xF3digo. Intent\xE1 de nuevo en unos minutos."
+        : "Error de conexi\xF3n. Verific\xE1 tu internet e intent\xE1 nuevamente.");
     }
   };
   const verify = () => {
@@ -1356,8 +1368,9 @@ function LoginScreen({ onAuth }) {
     fontSize: 13,
     fontWeight: 700,
     cursor: active ? "pointer" : "default",
+    opacity: active ? 1 : 0.45,
     letterSpacing: "0.04em",
-    transition: "background .15s ease, color .15s ease"
+    transition: "background .15s ease, color .15s ease, opacity .15s ease"
   });
   const emailBorderColor = emailInvalid ? "#E8602C" : emailFocused ? "#0E6B70" : (emailAllowed && emailTouched) ? "#34c759" : fade(T, 0.13);
   const emailInputStyle = {
@@ -1415,7 +1428,7 @@ function LoginScreen({ onAuth }) {
         onChange: (e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrMsg(""); },
         onKeyDown: (e) => e.key === "Enter" && code.length === 6 && verify(),
         placeholder: "000000",
-        style: { width: "100%", padding: "14px 12px", boxSizing: "border-box", background: fade(T, 0.04), border: `1.5px solid ${fade(T, 0.13)}`, borderRadius: 10, fontSize: 28, fontFamily: "Nunito, monospace", fontWeight: 800, textAlign: "center", letterSpacing: "0.35em", color: T.fg, outline: "none", marginBottom: 12, transition: "border-color .15s ease" },
+        style: { width: "100%", padding: "14px 12px", boxSizing: "border-box", background: fade(T, 0.04), border: `1.5px solid ${fade(T, 0.13)}`, borderRadius: 10, fontSize: 28, fontFamily: "Nunito, monospace", fontWeight: 800, textAlign: "center", letterSpacing: "0.35em", color: T.fg, marginBottom: 12, transition: "border-color .15s ease" },
         onFocus: (e) => e.target.style.borderColor = "#0E6B70",
         onBlur: (e) => e.target.style.borderColor = fade(T, 0.13)
       }),
@@ -1432,7 +1445,7 @@ function App() {
   const [authed, setAuthed] = useState(() => {
     try {
       const s = JSON.parse(sessionStorage.getItem("_itAuth") || "null");
-      return !!(s && s.verified && Date.now() < s.expires);
+      return !!(s && typeof s === "object" && s.verified === true && typeof s.expires === "number" && Date.now() < s.expires);
     } catch (e) {
       return false;
     }
