@@ -1386,6 +1386,11 @@ const AREA_COORDS_RJ = {
   "Flamengo":[-22.936,-43.1769],"São Cristóvão":[-22.8973,-43.2245],"Humaiá":[-22.9578,-43.1917],
   "São Conrado":[-23.0189,-43.2891],"Centro":[-22.9068,-43.1729]
 };
+const AIRPORTS = [
+  { id:"gig", name:"Aeroporto Int’l Tom Jobim (GIG)", code:"GIG", city:"Rio de Janeiro", coords:[-22.8099,-43.2505], note:"Partida GIG→IGU \xB7 19 jul" },
+  { id:"sdu", name:"Aeroporto Santos Dumont (SDU)", code:"SDU", city:"Rio de Janeiro", coords:[-22.9103,-43.1631], note:"Chegada CGH→SDU \xB7 13 jul" },
+  { id:"igu", name:"Aeroporto Int’l Foz (IGU)", code:"IGU", city:"Foz do Igua\xE7u", coords:[-25.5963,-54.4853], note:"Partida IGU→GRU \xB7 09 jul" }
+];
 const ensureLeaflet = (() => {
   let p = null;
   return () => { if (p) return p; p = new Promise((res) => { if (window.L) { res(); return; } const lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(lk); const sc = document.createElement("script"); sc.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; sc.crossOrigin = "anonymous"; sc.onload = res; sc.onerror = res; document.head.appendChild(sc); }); return p; };
@@ -1393,7 +1398,7 @@ const ensureLeaflet = (() => {
 function MapContent({ T, accent }) {
   const [leafletReady, setLR] = React.useState(!!window.L);
   const [cityFilter, setCityFilter] = React.useState("sp");
-  const [typeFilter, setTypeFilter] = React.useState(["actividades","museos","shoppings","comidas","alojamiento"]);
+  const [typeFilter, setTypeFilter] = React.useState(["actividades","museos","shoppings","comidas","alojamiento","aeropuertos"]);
   const containerRef = React.useRef(null);
   const mapRef = React.useRef(null);
   const lgRef = React.useRef(null);
@@ -1401,7 +1406,7 @@ function MapContent({ T, accent }) {
   React.useEffect(() => {
     if (!leafletReady || !containerRef.current || mapRef.current) return;
     const L = window.L;
-    const center = cityFilter === "sp" ? [-23.5505,-46.6333] : [-22.9068,-43.1729];
+    const center = cityFilter === "sp" ? [-23.5505,-46.6333] : cityFilter === "rj" ? [-22.9068,-43.1729] : [-25.5337,-54.5747];
     const m = L.map(containerRef.current, { zoomControl: false }).setView(center, 13);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '\u00a9 <a href="https://openstreetmap.org/copyright">OSM</a>', maxZoom: 19 }).addTo(m);
     L.control.zoom({ position: "topright" }).addTo(m);
@@ -1411,15 +1416,16 @@ function MapContent({ T, accent }) {
   }, [leafletReady]);
   React.useEffect(() => {
     if (!mapRef.current) return;
-    const c = cityFilter === "sp" ? [-23.5505,-46.6333] : [-22.9068,-43.1729];
-    mapRef.current.flyTo(c, 13, { duration: 0.7 });
+    const c = cityFilter === "sp" ? [-23.5505,-46.6333] : cityFilter === "rj" ? [-22.9068,-43.1729] : [-25.5337,-54.5747];
+    const z = cityFilter === "foz" ? 12 : 13;
+    mapRef.current.flyTo(c, z, { duration: 0.7 });
   }, [cityFilter]);
   React.useEffect(() => {
     if (!mapRef.current || !lgRef.current || !leafletReady) return;
     const L = window.L;
     lgRef.current.clearLayers();
-    const city = cityFilter === "sp" ? "S\xE3o Paulo" : "Rio de Janeiro";
-    const COLS = { actividades: accent, museos: "#2A5298", shoppings: "#9B59B6", comidas: "#E8602C", alojamiento: "#D81B60" };
+    const city = cityFilter === "sp" ? "S\xE3o Paulo" : cityFilter === "rj" ? "Rio de Janeiro" : "Foz do Igua\xE7u";
+    const COLS = { actividades: accent, museos: "#2A5298", shoppings: "#9B59B6", comidas: "#E8602C", alojamiento: "#D81B60", aeropuertos: "#0EA5E9" };
     const COORDS = cityFilter === "sp" ? AREA_COORDS_SP : AREA_COORDS_RJ;
     const jit = () => (Math.random() - 0.5) * 0.0025;
     const add = (item, type, sub, extra) => {
@@ -1437,19 +1443,26 @@ function MapContent({ T, accent }) {
     if (typeFilter.includes("shoppings")) SHOPPINGS.filter(s => s.city === city).forEach(s => add(s, "shoppings", s.kind + " \xB7 " + s.area, ""));
     if (typeFilter.includes("comidas")) MEALS.filter(m => m.city === city).forEach(m => add(m, "comidas", m.category + " \xB7 " + m.moment, m.price));
     if (typeFilter.includes("alojamiento")) STAYS.filter(s => s.city === city).forEach(s => add(s, "alojamiento", s.type, s.checkIn + " \u2013 " + s.checkOut));
+    if (typeFilter.includes("aeropuertos")) AIRPORTS.filter(a => a.city === city).forEach(a => {
+      const L = window.L;
+      L.circleMarker(a.coords, { radius: 10, fillColor: "#0EA5E9", color: "#fff", weight: 2.5, fillOpacity: 0.92 })
+        .bindPopup(`<div style="font-family:Nunito,sans-serif;min-width:150px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:3px">\u2708\ufe0f ${a.code} \xB7 Aeropuerto</div><div style="font-size:13px;font-weight:700;color:#1A2F5A">${a.name}</div><div style="font-size:10px;color:#555;margin-top:3px">${a.note}</div></div>`, { maxWidth: 220 })
+        .addTo(lgRef.current);
+    });
   }, [cityFilter, typeFilter, leafletReady]);
   const MAP_TYPES = [
     { key: "actividades", label: "Actividades", color: accent },
     { key: "museos", label: "Museos", color: "#2A5298" },
     { key: "shoppings", label: "Shoppings", color: "#9B59B6" },
     { key: "comidas", label: "Comidas", color: "#E8602C" },
-    { key: "alojamiento", label: "Alojamiento", color: "#D81B60" }
+    { key: "alojamiento", label: "Alojamiento", color: "#D81B60" },
+    { key: "aeropuertos", label: "Aeropuertos", color: "#0EA5E9" }
   ];
   const toggleType = (k) => setTypeFilter(f => f.includes(k) ? f.filter(x => x !== k) : [...f, k]);
   const allOn = typeFilter.length === MAP_TYPES.length;
   return /* @__PURE__ */ React.createElement("div", null,
     /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 10px", display: "flex", gap: 6 } },
-      [{ id: "sp", label: "S\xE3o Paulo" }, { id: "rj", label: "Rio de Janeiro" }].map(c =>
+      [{ id: "sp", label: "S\xE3o Paulo" }, { id: "rj", label: "Rio de Janeiro" }, { id: "foz", label: "Foz do Igua\xE7u" }].map(c =>
         /* @__PURE__ */ React.createElement("button", { key: c.id, onClick: () => setCityFilter(c.id), style: {
           padding: "6px 14px", borderRadius: 99, fontFamily: "Nunito,sans-serif", fontSize: 11,
           fontWeight: cityFilter === c.id ? 700 : 500, cursor: "pointer",
