@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Página no encontrada · Brasil 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Nunito", sans-serif;
+      background: #FAF8F6;
+      color: #1A2F5A;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .alines {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 40px;
+    }
+    .alines span {
+      display: block;
+      height: 6px;
+      border-radius: 3px;
+    }
+    .card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(26,47,90,0.09), 0 1px 6px rgba(26,47,90,0.05);
+      padding: 48px 52px 44px;
+      max-width: 420px;
+      width: calc(100% - 48px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14,107,112,0.10) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .deco {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .deco span {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      opacity: 0.35;
+    }
+    h1 {
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 80px;
+      font-weight: 700;
+      line-height: 1;
+      color: #1A2F5A;
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+    }
+    .sub {
+      font-family: "Playfair Display", Georgia, serif;
+      font-style: italic;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0E6B70;
+      margin-bottom: 20px;
+    }
+    .divider {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .divider span {
+      display: block;
+      height: 3px;
+      border-radius: 2px;
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(26,47,90,0.58);
+      margin-bottom: 32px;
+    }
+    a.btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0E6B70;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-family: "Nunito", sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 99px;
+      transition: opacity 0.15s, transform 0.15s;
+      letter-spacing: 0.02em;
+    }
+    a.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    a.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: rgba(26,47,90,0.30);
+      margin-top: 28px;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="alines">
+    <span style="width:32px;background:#009C3B;"></span>
+    <span style="width:20px;background:#FEDF00;"></span>
+    <span style="width:14px;background:#0E6B70;"></span>
+    <span style="width:8px;background:#1A2F5A;"></span>
+  </div>
+
+  <div class="card">
+    <div class="deco">
+      <span style="background:#009C3B;"></span>
+      <span style="background:#FEDF00;"></span>
+      <span style="background:#0E6B70;"></span>
+    </div>
+
+    <h1>404.</h1>
+    <div class="sub">Página no encontrada</div>
+
+    <div class="divider">
+      <span style="width:40px;background:#009C3B;"></span>
+      <span style="width:20px;background:#FEDF00;"></span>
+      <span style="width:10px;background:#0E6B70;"></span>
+    </div>
+
+    <p>Esta ruta no existe en el itinerario.<br />Volvé al inicio para seguir explorando Brasil.</p>
+
+    <a href="/main" class="btn">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 12L6 8l4-4"/>
+      </svg>
+      Volver al itinerario
+    </a>
+
+    <p class="mono">BRASIL · JULIO 2026 · 404</p>
+  </div>
+</body>
+</html>
