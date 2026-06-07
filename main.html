@@ -1968,6 +1968,37 @@ function CurrencyContent({ T, accent }) {
 
   const [focused, setFocused] = React.useState(null);
 
+  const isIOS = React.useMemo(() => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), []);
+  const iosFileRef = React.useRef(null);
+  const [iosPhoto, setIosPhoto] = React.useState(null);   // blob URL of photo
+  const [iosPrice, setIosPrice] = React.useState('');
+  const [iosConv, setIosConv] = React.useState(null);
+
+  const handleIOSPhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (iosPhoto) URL.revokeObjectURL(iosPhoto);
+    setIosPhoto(URL.createObjectURL(f));
+    setIosPrice('');
+    setIosConv(null);
+    e.target.value = '';
+  };
+
+  const handleIOSPrice = (raw) => {
+    const clean = raw.replace(/[^\d.,]/g, '').replace(',', '.');
+    setIosPrice(raw.replace(/[^\d.,]/g, ''));
+    if (!rates || !clean) { setIosConv(null); return; }
+    const n = parseFloat(clean);
+    if (!isNaN(n) && n > 0) setIosConv({ brl: n, usd: n * rates.usd, ars: n * rates.ars });
+    else setIosConv(null);
+  };
+
+  const applyIOSPrice = () => {
+    if (!iosConv || !rates) return;
+    setVals({ brl: iosConv.brl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), usd: fmt2(iosConv.usd), ars: fmtARS(iosConv.ars) });
+    setIosPhoto(null); setIosPrice(''); setIosConv(null);
+  };
+
   const onScanResult = React.useCallback((priceBRL) => {
     if (!rates || priceBRL == null) return;
     setVals({
@@ -1979,12 +2010,41 @@ function CurrencyContent({ T, accent }) {
   }, [rates]);
 
   return /* @__PURE__ */ React.createElement(React.Fragment, null,
-    showScanner && /* @__PURE__ */ React.createElement(CameraScanner, { T, accent, rates, onResult: onScanResult, onClose: () => setShowScanner(false) }),
-    /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px 32px" } },
-    /* @__PURE__ */ React.createElement("button", { onClick: () => setShowScanner(true), style: { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "13px 16px", marginBottom: 16, background: `${accent}15`, border: `1.5px dashed ${accent}55`, borderRadius: 14, cursor: "pointer", color: accent, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.03em", transition: "background .15s ease, border-color .15s ease" }, onMouseEnter: (e) => { e.currentTarget.style.background = `${accent}25`; e.currentTarget.style.borderColor = accent; }, onMouseLeave: (e) => { e.currentTarget.style.background = `${accent}15`; e.currentTarget.style.borderColor = `${accent}55`; } },
-      /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, "📸"),
-      /* @__PURE__ */ React.createElement("span", null, "Escanear precio con la c\xE1mara")
+    !isIOS && showScanner && /* @__PURE__ */ React.createElement(CameraScanner, { T, accent, rates, onResult: onScanResult, onClose: () => setShowScanner(false) }),
+
+    // iOS photo modal
+    isIOS && iosPhoto && /* @__PURE__ */ React.createElement('div', { style: { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.88)', display: 'flex', flexDirection: 'column', padding: '0 0 env(safe-area-inset-bottom)' } },
+      /* @__PURE__ */ React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', flexShrink: 0 } },
+        /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 12, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', textTransform: 'uppercase' } }, '📸 Precio en foto'),
+        /* @__PURE__ */ React.createElement('button', { onClick: () => { setIosPhoto(null); setIosPrice(''); setIosConv(null); }, style: { background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 34, height: 34, color: '#fff', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, '✕')
+      ),
+      /* @__PURE__ */ React.createElement('div', { style: { flex: 1, overflow: 'hidden', position: 'relative' } },
+        /* @__PURE__ */ React.createElement('img', { src: iosPhoto, style: { width: '100%', height: '100%', objectFit: 'contain' } })
+      ),
+      /* @__PURE__ */ React.createElement('div', { style: { padding: '18px 18px 24px', flexShrink: 0, background: 'rgba(8,8,18,0.95)', borderTop: '1px solid rgba(255,255,255,0.08)' } },
+        /* @__PURE__ */ React.createElement(Mono, { style: { display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', marginBottom: 10 } }, '¿Cu\xE1nto marca el precio en R$?'),
+        /* @__PURE__ */ React.createElement('input', { type: 'text', inputMode: 'decimal', placeholder: '0,00', autoFocus: true, value: iosPrice, onChange: (e) => handleIOSPrice(e.target.value),
+          style: { width: '100%', padding: '14px 16px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.07)', border: `1.5px solid ${iosConv ? accent : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, fontSize: 28, fontFamily: 'Nunito, sans-serif', fontWeight: 800, textAlign: 'right', color: '#fff', outline: 'none', letterSpacing: '0.02em', transition: 'border-color .15s ease', marginBottom: 12 } }),
+        iosConv && /* @__PURE__ */ React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 } },
+          /* @__PURE__ */ React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px' } },
+            /* @__PURE__ */ React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 } }, '🇦🇷 Pesos'),
+            /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 20, color: '#fff' } }, `$ ${fmtARS(iosConv.ars)}`)
+          ),
+          /* @__PURE__ */ React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px' } },
+            /* @__PURE__ */ React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 } }, '🇺🇸 D\xF3lares'),
+            /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 20, color: '#fff' } }, `$ ${fmt2(iosConv.usd)}`)
+          )
+        ),
+        /* @__PURE__ */ React.createElement('button', { onClick: applyIOSPrice, disabled: !iosConv, style: { width: '100%', padding: '13px', background: iosConv ? accent : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: iosConv ? 'pointer' : 'default', opacity: iosConv ? 1 : 0.4, transition: 'background .15s, opacity .15s' } }, 'Usar este precio en el conversor')
+      )
     ),
+
+    /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px 32px" } },
+    /* @__PURE__ */ React.createElement("button", { onClick: () => isIOS ? iosFileRef.current?.click() : setShowScanner(true), style: { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "13px 16px", marginBottom: 16, background: `${accent}15`, border: `1.5px dashed ${accent}55`, borderRadius: 14, cursor: "pointer", color: accent, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.03em", transition: "background .15s ease, border-color .15s ease" }, onMouseEnter: (e) => { e.currentTarget.style.background = `${accent}25`; e.currentTarget.style.borderColor = accent; }, onMouseLeave: (e) => { e.currentTarget.style.background = `${accent}15`; e.currentTarget.style.borderColor = `${accent}55`; } },
+      /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, "📸"),
+      /* @__PURE__ */ React.createElement("span", null, isIOS ? "Fotografiar precio" : "Escanear precio con la c\xE1mara")
+    ),
+    isIOS && /* @__PURE__ */ React.createElement('input', { ref: iosFileRef, type: 'file', accept: 'image/*', capture: 'environment', style: { display: 'none' }, onChange: handleIOSPhoto }),
     /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
       fields.map(({ key, label, flag, symbol, color }) =>
         /* @__PURE__ */ React.createElement("div", { key,
