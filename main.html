@@ -1942,6 +1942,34 @@ function ocrPriceCanvas(canvas) {
   return result.replace(/[^0-9,.]/g, '') || null;
 }
 
+// ── BRL number parser (separator-agnostic) ────────────────────────────────
+// Works regardless of whether OCR output commas vs periods: uses the
+// NUMBER OF DIGITS after the last separator to determine its role.
+//   • 2 trailing digits  → last sep is the decimal separator  (BRL: comma)
+//   • 3 trailing digits  → last sep is a thousands separator  (no cents)
+//   • 0 separators       → plain integer price
+function _parseBRL(s) {
+  s = (s || '').replace(/[^0-9.,]/g, '');
+  if (!s) return null;
+  const seps = [...s.matchAll(/[.,]/g)];
+  if (!seps.length) {
+    const n = parseFloat(s);
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  const lastSep = seps[seps.length - 1];
+  const after   = s.slice(lastSep.index + 1);
+  let norm;
+  if (after.length === 2) {
+    // Last separator is the decimal point (BRL uses comma, but OCR may output period)
+    norm = s.slice(0, lastSep.index).replace(/[.,]/g, '') + '.' + after;
+  } else {
+    // All separators are thousands — no fractional part
+    norm = s.replace(/[.,]/g, '');
+  }
+  const n = parseFloat(norm);
+  return (isFinite(n) && n > 0) ? n : null;
+}
+
 // ── iOS Live Scanner ───────────────────────────────────────────────────────
 function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
   const [phase, setPhase] = React.useState('loading'); // loading|live|denied|error
@@ -2010,19 +2038,7 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
       let price = null;
       try {
         const localStr = ocrPriceCanvas(c);
-        if (localStr) {
-          // Parse BRL format: "87534,89" → 87534.89, "1.234,56" → 1234.56
-          const lastComma = localStr.lastIndexOf(',');
-          const lastDot   = localStr.lastIndexOf('.');
-          let norm;
-          if (lastComma > lastDot) {
-            norm = localStr.replace(/\./g, '').replace(',', '.');
-          } else {
-            norm = localStr.replace(/,/g, '');
-          }
-          const n = parseFloat(norm);
-          if (isFinite(n) && n > 0) price = n;
-        }
+        if (localStr) price = _parseBRL(localStr);
       } catch (_) { /* local OCR failed — fall through to worker */ }
 
       // ── 2. Fallback to Cloudflare Workers AI if local OCR found nothing ─
