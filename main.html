@@ -1715,8 +1715,6 @@ function extractPrices(text) {
 }
 
 // ── iOS Live Scanner (server-side OCR via Cloudflare Workers AI) ──────────
-const WORKER_URL = 'https://itinerario-proxy.pallottagonzalosebastian-pos.workers.dev';
-
 function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
   const [phase, setPhase] = React.useState('loading'); // loading|live|denied|error
   const [sel, setSel] = React.useState(null);
