@@ -1848,20 +1848,37 @@ function ocrPriceCanvas(canvas) {
   if (inS) segs.push([sX, W]);
   if (!segs.length) return null;
 
-  // 6. Classify each segment
+  // 6a. Pre-compute tight vertical bounds for every segment
+  const segData = segs.map(([x0, x1]) => {
+    let by0 = ty1, by1 = ty0;
+    for (let y = ty0; y < ty1; y++) for (let x = x0; x < x1; x++)
+      if (fg[y*W+x]) { if (y < by0) by0 = y; if (y > by1) by1 = y; }
+    return { x0, x1, sW: x1-x0, by0: by0 <= by1 ? by0 : ty0, by1: by0 <= by1 ? by1 : ty0 };
+  });
+
+  // Median height of digit-width segments → reference for separator classification
+  const digitHs = segData.filter(s => s.sW / tH >= 0.28).map(s => s.by1 - s.by0 + 1).sort((a,b)=>a-b);
+  const medDH = digitHs.length ? digitHs[Math.floor(digitHs.length / 2)] : tH * 0.7;
+
+  // 6b. Classify each segment
   const FW = 12, FH = 18;
   let result = '';
-  for (const [x0, x1] of segs) {
-    const sW = x1 - x0;
+  for (const { x0, x1, sW, by0, by1 } of segData) {
     if (sW < 2) continue;
-    // Comma/period: narrower than ~30% of text height
-    if (sW / tH < 0.28) { result += ','; continue; }
 
-    // Tight-crop foreground pixels of this segment
-    let bx0 = x1, bx1 = x0, by0 = ty1, by1 = ty0;
-    for (let y = ty0; y < ty1; y++) for (let x = x0; x < x1; x++) {
-      if (fg[y*W+x]) { bx0=Math.min(bx0,x); bx1=Math.max(bx1,x); by0=Math.min(by0,y); by1=Math.max(by1,y); }
+    if (sW / tH < 0.28) {
+      // Separator: distinguish period from comma by pixel height
+      // • Period  = compact dot → very short (< ~28 % of digit height)
+      // • Comma   = dot + descender tail → taller (≥ ~28 % of digit height)
+      const sepH = by1 - by0 + 1;
+      result += sepH / medDH >= 0.28 ? ',' : '.';
+      continue;
     }
+
+    // Tight-crop foreground pixels of this digit segment
+    let bx0 = x1, bx1 = x0;
+    for (let y = by0; y <= by1; y++) for (let x = x0; x < x1; x++)
+      if (fg[y*W+x]) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; }
     if (bx1 < bx0) continue;
     const bW = bx1-bx0+1, bH = by1-by0+1;
     const crop = new Uint8Array(bW*bH);
@@ -1869,7 +1886,7 @@ function ocrPriceCanvas(canvas) {
       crop[y*bW+x] = fg[(by0+y)*W+(bx0+x)];
 
     const vec = _zoneDensity(crop, bW, bH, FW, FH);
-    let bestCh = null, bestSim = 0.45; // minimum similarity
+    let bestCh = null, bestSim = 0.45;
     for (const [ch, tmpl] of Object.entries(ref)) {
       const sim = _cosSim(vec, tmpl);
       if (sim > bestSim) { bestSim = sim; bestCh = ch; }
