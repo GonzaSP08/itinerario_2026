@@ -1714,7 +1714,173 @@ function extractPrices(text) {
   return [...found].sort((a, b) => a - b);
 }
 
-// ── iOS Live Scanner (server-side OCR via Cloudflare Workers AI) ──────────
+// ── Digit OCR (no external deps) ─────────────────────────────────────────
+// Recognises 0-9 + comma/period from a canvas image.
+// Algorithm:
+//   1. Otsu binarisation (auto-detects dark-on-light vs light-on-dark)
+//   2. Horizontal projection → find text strip
+//   3. Vertical projection → segment each character
+//   4. Tight-crop + zone-density feature vector (12×18)
+//   5. Cosine-similarity nearest-neighbour vs browser-rendered templates
+
+let _ocrRef = null; // lazy cache of reference templates
+
+function _buildOCRRef() {
+  if (_ocrRef) return _ocrRef;
+  const RW = 52, RH = 72, FW = 12, FH = 18;
+  const c = document.createElement('canvas'); c.width = RW; c.height = RH;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  // Average across several common fonts for font-invariance
+  const FONTS = [
+    '46px sans-serif', 'bold 46px sans-serif',
+    '46px Arial', 'bold 46px Arial',
+    '46px Helvetica Neue', '46px system-ui',
+  ];
+  _ocrRef = {};
+  for (const ch of '0123456789') {
+    const acc = new Float32Array(FW * FH);
+    let n = 0;
+    for (const font of FONTS) {
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, RW, RH);
+      ctx.fillStyle = '#000'; ctx.font = font;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(ch, RW / 2, RH / 2);
+      const crop = _tightCropCtx(ctx, RW, RH);
+      if (!crop) continue;
+      const v = _zoneDensity(crop.data, crop.w, crop.h, FW, FH);
+      for (let i = 0; i < FW * FH; i++) acc[i] += v[i];
+      n++;
+    }
+    if (n) { for (let i = 0; i < FW * FH; i++) acc[i] /= n; _ocrRef[ch] = acc; }
+  }
+  return _ocrRef;
+}
+
+function _tightCropCtx(ctx, W, H) {
+  const d = ctx.getImageData(0, 0, W, H).data;
+  let x0 = W, x1 = 0, y0 = H, y1 = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (d[(y * W + x) * 4] < 128) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < x0) return null;
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const bin = new Uint8Array(cw * ch);
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++)
+    bin[y * cw + x] = d[((y0 + y) * W + (x0 + x)) * 4] < 128 ? 1 : 0;
+  return { data: bin, w: cw, h: ch };
+}
+
+function _zoneDensity(bin, W, H, FW, FH) {
+  const vec = new Float32Array(FW * FH);
+  for (let fy = 0; fy < FH; fy++) for (let fx = 0; fx < FW; fx++) {
+    const x0 = Math.round(fx * W / FW), x1 = Math.round((fx + 1) * W / FW);
+    const y0 = Math.round(fy * H / FH), y1 = Math.round((fy + 1) * H / FH);
+    let s = 0, n = 0;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { s += bin[y * W + x]; n++; }
+    vec[fy * FW + fx] = n ? s / n : 0;
+  }
+  return vec;
+}
+
+function _cosSim(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+  return (na && nb) ? dot / Math.sqrt(na * nb) : 0;
+}
+
+// Main entry: canvas → number string (e.g. "87534,89") or null
+function ocrPriceCanvas(canvas) {
+  const ref = _buildOCRRef();
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const W = canvas.width, H = canvas.height;
+  const raw = ctx.getImageData(0, 0, W, H).data;
+
+  // 1. Grayscale
+  const gray = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++)
+    gray[i] = (raw[i*4]*77 + raw[i*4+1]*150 + raw[i*4+2]*29) >> 8;
+
+  // 2. Otsu threshold
+  const hist = new Int32Array(256);
+  for (const v of gray) hist[v]++;
+  let sumAll = 0;
+  for (let i = 0; i < 256; i++) sumAll += i * hist[i];
+  let sumB = 0, wB = 0, maxVar = 0, thresh = 128;
+  for (let i = 0; i < 256; i++) {
+    wB += hist[i]; if (!wB) continue;
+    const wF = W*H - wB; if (!wF) break;
+    sumB += i * hist[i];
+    const mB = sumB/wB, mF = (sumAll-sumB)/wF;
+    const v = wB * wF * (mB - mF) ** 2;
+    if (v > maxVar) { maxVar = v; thresh = i; }
+  }
+
+  // 3. Binarise; auto-detect polarity
+  let darkPx = 0;
+  const bin = new Uint8Array(W * H);
+  for (let i = 0; i < W*H; i++) if (gray[i] < thresh) { bin[i] = 1; darkPx++; }
+  const fg = darkPx > W*H/2 ? bin.map(v => 1-v) : bin;
+
+  // 4. Find text strip via horizontal projection
+  const rowS = new Int32Array(H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) rowS[y] += fg[y*W+x];
+  const maxRS = Math.max(...rowS);
+  if (maxRS < 2) return null;
+  let ty0 = 0, ty1 = H;
+  for (let y = 0; y < H; y++) if (rowS[y] > maxRS*0.08) { ty0 = y; break; }
+  for (let y = H-1; y >= 0; y--) if (rowS[y] > maxRS*0.08) { ty1 = y+1; break; }
+  const tH = ty1 - ty0;
+  if (tH < 4) return null;
+
+  // 5. Segment characters via vertical projection
+  const colS = new Int32Array(W);
+  for (let y = ty0; y < ty1; y++) for (let x = 0; x < W; x++) colS[x] += fg[y*W+x];
+  const colT = Math.max(1, tH * 0.05);
+  const segs = [];
+  let inS = false, sX = 0;
+  for (let x = 0; x < W; x++) {
+    if (colS[x] >= colT && !inS) { inS = true; sX = x; }
+    else if (colS[x] < colT && inS) { inS = false; segs.push([sX, x]); }
+  }
+  if (inS) segs.push([sX, W]);
+  if (!segs.length) return null;
+
+  // 6. Classify each segment
+  const FW = 12, FH = 18;
+  let result = '';
+  for (const [x0, x1] of segs) {
+    const sW = x1 - x0;
+    if (sW < 2) continue;
+    // Comma/period: narrower than ~30% of text height
+    if (sW / tH < 0.28) { result += ','; continue; }
+
+    // Tight-crop foreground pixels of this segment
+    let bx0 = x1, bx1 = x0, by0 = ty1, by1 = ty0;
+    for (let y = ty0; y < ty1; y++) for (let x = x0; x < x1; x++) {
+      if (fg[y*W+x]) { bx0=Math.min(bx0,x); bx1=Math.max(bx1,x); by0=Math.min(by0,y); by1=Math.max(by1,y); }
+    }
+    if (bx1 < bx0) continue;
+    const bW = bx1-bx0+1, bH = by1-by0+1;
+    const crop = new Uint8Array(bW*bH);
+    for (let y = 0; y < bH; y++) for (let x = 0; x < bW; x++)
+      crop[y*bW+x] = fg[(by0+y)*W+(bx0+x)];
+
+    const vec = _zoneDensity(crop, bW, bH, FW, FH);
+    let bestCh = null, bestSim = 0.45; // minimum similarity
+    for (const [ch, tmpl] of Object.entries(ref)) {
+      const sim = _cosSim(vec, tmpl);
+      if (sim > bestSim) { bestSim = sim; bestCh = ch; }
+    }
+    if (bestCh) result += bestCh;
+  }
+
+  return result.replace(/[^0-9,.]/g, '') || null;
+}
+
+// ── iOS Live Scanner ───────────────────────────────────────────────────────
 function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
   const [phase, setPhase] = React.useState('loading'); // loading|live|denied|error
   const [sel, setSel] = React.useState(null);
@@ -1768,29 +1934,52 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
     setScanning(true);
 
     try {
-      // Crop to the targeting rectangle area and upscale so the number fills the image.
-      // Sending a tight crop gives the model a cleaner, larger number to read.
+      // Crop the targeting zone at 2× upscale so digits are large and clear
       const vw = v.videoWidth, vh = v.videoHeight;
       const cw = Math.round(vw * 0.78), ch = Math.round(vh * 0.28);
       const cx = Math.round((vw - cw) / 2), cy = Math.round((vh - ch) / 2);
-      // Upscale 2× so digits are larger and clearer for OCR
       c.width = cw * 2; c.height = ch * 2;
       const ctx2 = c.getContext('2d');
       ctx2.imageSmoothingEnabled = true; ctx2.imageSmoothingQuality = 'high';
       ctx2.drawImage(v, cx, cy, cw, ch, 0, 0, c.width, c.height);
-      const dataUrl = c.toDataURL('image/jpeg', 0.92);
 
-      const res = await fetch(WORKER_URL + '/ocr-price', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: dataUrl }),
-        signal: AbortSignal.timeout(12000),
-      });
-      if (!res.ok) throw new Error('worker_' + res.status);
-      const data = await res.json();
-      if (alive.current && data.ok && data.price && data.price > 0) {
-        setSel(data.price);
+      // ── 1. Try fully local OCR (zero latency, no network) ──────────────
+      let price = null;
+      try {
+        const localStr = ocrPriceCanvas(c);
+        if (localStr) {
+          // Parse BRL format: "87534,89" → 87534.89, "1.234,56" → 1234.56
+          const lastComma = localStr.lastIndexOf(',');
+          const lastDot   = localStr.lastIndexOf('.');
+          let norm;
+          if (lastComma > lastDot) {
+            norm = localStr.replace(/\./g, '').replace(',', '.');
+          } else {
+            norm = localStr.replace(/,/g, '');
+          }
+          const n = parseFloat(norm);
+          if (isFinite(n) && n > 0) price = n;
+        }
+      } catch (_) { /* local OCR failed — fall through to worker */ }
+
+      // ── 2. Fallback to Cloudflare Workers AI if local OCR found nothing ─
+      if (!price) {
+        try {
+          const dataUrl = c.toDataURL('image/jpeg', 0.92);
+          const res = await fetch(WORKER_URL + '/ocr-price', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: dataUrl }),
+            signal: AbortSignal.timeout(12000),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.ok && data.price && data.price > 0) price = data.price;
+          }
+        } catch (_) { /* ignore */ }
       }
+
+      if (alive.current && price) setSel(price);
     } catch (e) { /* ignore per-frame errors, keep scanning */ }
 
     if (alive.current) setScanning(false);
