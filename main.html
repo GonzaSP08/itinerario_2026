@@ -1714,136 +1714,85 @@ function extractPrices(text) {
   return [...found].sort((a, b) => a - b);
 }
 
-// ── OCRAD (iOS live scanner) ──────────────────────────────────────────────
-let _ocradP = null;
-function ensureOCRAD() {
-  if (_ocradP) return _ocradP;
-  _ocradP = (async () => {
-    if (window.OCRAD) return;
-    // Fetch as text + eval: avoids CDN script-tag issues with the "ocrad.js"
-    // package name (the .js suffix confuses CDN path resolution) and also
-    // works without needing blob: in script-src.
-    // eval is permitted by the existing 'unsafe-inline' in script-src.
-    const text = await fetch('https://unpkg.com/ocrad.js').then(r => {
-      if (!r.ok) throw new Error('ocrad_fetch_' + r.status);
-      return r.text();
-    });
-    // eslint-disable-next-line no-eval
-    eval(text); // UMD wrapper sets window.OCRAD in browser context
-    if (!window.OCRAD) throw new Error('ocrad_init');
-  })();
-  return _ocradP;
-}
-
-// Crops the center targeting area from a video, upscales it and applies
-// grayscale + contrast stretch + binary threshold. Returns false if not ready.
-function cropAndPreprocess(video, canvas) {
-  const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw || !vh) return false;
-  const cropW = Math.round(vw * 0.78), cropH = Math.round(vh * 0.28);
-  const cropX = Math.round((vw - cropW) / 2), cropY = Math.round((vh - cropH) / 2);
-  const scale = Math.max(2, Math.min(4, Math.round(400 / cropH)));
-  canvas.width = cropW * scale; canvas.height = cropH * scale;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const d = img.data;
-  // Contrast stretch
-  let lo = 255, hi = 0;
-  for (let i = 0; i < d.length; i += 4) {
-    const g = (d[i] * 77 + d[i+1] * 150 + d[i+2] * 29) >> 8;
-    if (g < lo) lo = g; if (g > hi) hi = g;
-  }
-  const rng = hi - lo || 1;
-  for (let i = 0; i < d.length; i += 4) {
-    const g = (d[i] * 77 + d[i+1] * 150 + d[i+2] * 29) >> 8;
-    const v = Math.round(((g - lo) * 255) / rng) > 140 ? 255 : 0;
-    d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  return true;
-}
+// ── iOS Live Scanner (server-side OCR via Cloudflare Workers AI) ──────────
+const WORKER_URL = 'https://itinerario-proxy.pallottagonzalosebastian-pos.workers.dev';
 
 function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
-  const [phase, setPhase] = React.useState('loading'); // loading|live|ocr-loading|denied|error
-  const [prices, setPrices] = React.useState([]);
+  const [phase, setPhase] = React.useState('loading'); // loading|live|denied|error
   const [sel, setSel] = React.useState(null);
   const [scanning, setScanning] = React.useState(false);
   const videoRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const streamRef = React.useRef(null);
-  const timerRef = React.useRef(null);
   const alive = React.useRef(true);
+  const scanLockRef = React.useRef(false); // prevent overlapping requests
 
   React.useEffect(() => {
     alive.current = true;
-    (async () => {
-      // ── Step 1: open camera (fail fast, show error immediately) ──
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } }
-        });
-      } catch (e) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+      .then(stream => {
+        if (!alive.current) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+        const v = videoRef.current;
+        if (v) { v.srcObject = stream; v.play().catch(() => {}); }
+        if (alive.current) setPhase('live');
+      })
+      .catch(e => {
         if (!alive.current) return;
         setPhase(e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError' ? 'denied' : 'error');
-        return;
-      }
-      if (!alive.current) { stream.getTracks().forEach(t => t.stop()); return; }
-      streamRef.current = stream;
-      const v = videoRef.current;
-      if (v) { v.srcObject = stream; v.play().catch(() => {}); }
-      // Show live feed immediately while OCR lib loads
-      setPhase('ocr-loading');
-
-      // ── Step 2: load OCRAD in background ──
-      try {
-        await ensureOCRAD();
-      } catch (e) {
-        // OCRAD failed — camera still works but we can't scan
-        if (alive.current) setPhase('ocr-error');
-        return;
-      }
-      if (!alive.current) return;
-      setPhase('live');
-      timerRef.current = setInterval(() => { if (alive.current) doScan(); }, 2500);
-    })();
+      });
     return () => {
       alive.current = false;
-      clearInterval(timerRef.current);
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
   }, []);
 
-  const doScan = React.useCallback(() => {
+  // Auto-scan loop: request → wait for response → delay → repeat
+  React.useEffect(() => {
+    if (phase !== 'live') return;
+    let cancelled = false;
+    const loop = async () => {
+      while (!cancelled && alive.current) {
+        await doScan();
+        // Wait 2s between scans (regardless of how long the request took)
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    };
+    loop();
+    return () => { cancelled = true; };
+  }, [phase]);
+
+  const doScan = React.useCallback(async () => {
+    if (scanLockRef.current) return;
     const v = videoRef.current, c = canvasRef.current;
-    if (!v || !c || v.readyState < 2 || !window.OCRAD) return;
+    if (!v || !c || v.readyState < 2) return;
+    scanLockRef.current = true;
     setScanning(true);
-    // yield to repaint before blocking main thread
-    setTimeout(() => {
-      if (!alive.current) return;
-      try {
-        if (!cropAndPreprocess(v, c)) { setScanning(false); return; }
-        // Run OCR twice: normal + inverted (handles light-on-dark prices too)
-        const text1 = window.OCRAD(c);
-        const ctx = c.getContext('2d', { willReadFrequently: true });
-        const img = ctx.getImageData(0, 0, c.width, c.height);
-        for (let i = 0; i < img.data.length; i += 4) {
-          img.data[i] = 255 - img.data[i];
-          img.data[i+1] = 255 - img.data[i+1];
-          img.data[i+2] = 255 - img.data[i+2];
-        }
-        ctx.putImageData(img, 0, 0);
-        const text2 = window.OCRAD(c);
-        const found = extractPrices(text1 + ' ' + text2);
-        if (found.length) {
-          setPrices(found);
-          setSel(prev => found.includes(prev) ? prev : found[0]);
-        }
-      } catch (e) { /* ignore per-frame errors */ }
-      if (alive.current) setScanning(false);
-    }, 0);
+
+    try {
+      // Capture the center 78%×28% strip where the viewfinder is
+      const vw = v.videoWidth, vh = v.videoHeight;
+      const cw = Math.round(vw * 0.78), ch = Math.round(vh * 0.28);
+      const cx = Math.round((vw - cw) / 2), cy = Math.round((vh - ch) / 2);
+      c.width = cw; c.height = ch;
+      c.getContext('2d').drawImage(v, cx, cy, cw, ch, 0, 0, cw, ch);
+      const dataUrl = c.toDataURL('image/jpeg', 0.8);
+
+      const res = await fetch(WORKER_URL + '/ocr-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl }),
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!res.ok) throw new Error('worker_' + res.status);
+      const data = await res.json();
+      if (alive.current && data.ok && data.price && data.price > 0) {
+        setSel(data.price);
+      }
+    } catch (e) { /* ignore per-frame errors, keep scanning */ }
+
+    if (alive.current) setScanning(false);
+    scanLockRef.current = false;
   }, []);
 
   const fmt2 = (n) => n < 0.01 ? n.toFixed(4) : n.toFixed(2);
@@ -1889,40 +1838,28 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
         React.createElement(Mono, { style: { fontSize: 12, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em' } }, 'Abriendo c\xE1mara\xB7\xB7\xB7')
       ),
 
-      // Live viewfinder (camera open — shows as soon as camera is ready)
-      (phase === 'live' || phase === 'ocr-loading' || phase === 'ocr-error') && React.createElement(React.Fragment, null,
+      // Live viewfinder
+      phase === 'live' && React.createElement(React.Fragment, null,
         // Targeting rectangle
         React.createElement('div', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' } },
           React.createElement('div', { style: { position: 'relative', width: '78%', height: '28%' } },
             corner('tl'), corner('tr'), corner('bl'), corner('br'),
-            phase === 'live' && React.createElement('div', { style: { position: 'absolute', left: 0, right: 0, height: 1.5, background: `linear-gradient(to right, transparent, ${accent}cc, transparent)`, animation: 'scanline 2.4s ease-in-out infinite', opacity: scanning ? 0.25 : 1, transition: 'opacity 0.3s' } })
+            React.createElement('div', { style: { position: 'absolute', left: 0, right: 0, height: 1.5, background: `linear-gradient(to right, transparent, ${accent}cc, transparent)`, animation: 'scanline 2.4s ease-in-out infinite', opacity: scanning ? 0.25 : 1, transition: 'opacity 0.3s' } })
           )
         ),
 
         // Status pill
         React.createElement('div', { style: { position: 'absolute', top: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' } },
-          phase === 'ocr-loading'
-            ? React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.52)', borderRadius: 99, padding: '5px 14px', border: '1px solid rgba(255,255,255,0.12)' } },
-                React.createElement('div', { style: { width: 12, height: 12, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 } }),
-                React.createElement(Mono, { style: { fontSize: 10, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.08em' } }, 'Cargando OCR\xB7\xB7\xB7')
-              )
-            : phase === 'ocr-error'
-              ? React.createElement('div', { style: { background: 'rgba(0,0,0,0.7)', borderRadius: 99, padding: '5px 14px', border: '1px solid rgba(255,80,80,0.4)' } },
-                  React.createElement(Mono, { style: { fontSize: 10, color: 'rgba(255,120,120,0.9)', letterSpacing: '0.08em' } }, 'OCR no disponible \xB7 verific\xE1 conexi\xF3n')
-                )
-              : React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.52)', borderRadius: 99, padding: '5px 14px', border: `1px solid ${scanning ? accent + '90' : 'rgba(255,255,255,0.12)'}`, transition: 'border-color 0.3s' } },
-                  React.createElement('div', { style: { width: 6, height: 6, borderRadius: '50%', background: scanning ? accent : 'rgba(255,255,255,0.3)', animation: scanning ? 'pulse 0.9s ease-in-out infinite' : 'none', transition: 'background 0.3s' } }),
-                  React.createElement(Mono, { style: { fontSize: 10, color: scanning ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', transition: 'color 0.3s' } }, scanning ? 'Leyendo\xB7\xB7\xB7' : 'Apunt\xE1 al precio')
-                )
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.52)', borderRadius: 99, padding: '5px 14px', border: `1px solid ${scanning ? accent + '90' : 'rgba(255,255,255,0.12)'}`, transition: 'border-color 0.3s' } },
+            React.createElement('div', { style: { width: 6, height: 6, borderRadius: '50%', background: scanning ? accent : 'rgba(255,255,255,0.3)', animation: scanning ? 'pulse 0.9s ease-in-out infinite' : 'none', transition: 'background 0.3s' } }),
+            React.createElement(Mono, { style: { fontSize: 10, color: scanning ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', transition: 'color 0.3s' } }, scanning ? 'Analizando\xB7\xB7\xB7' : 'Apunt\xE1 al precio')
+          )
         ),
 
         // Result panel
         conv
           ? React.createElement('div', { style: panel },
               React.createElement(Mono, { style: { display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 } }, '🇧🇷 Precio detectado'),
-              prices.length > 1 && React.createElement('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 } },
-                prices.map(p => React.createElement('button', { key: p, onClick: () => setSel(p), style: { background: p === sel ? accent : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '5px 12px', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, `R$ ${fmtBRL(p)}`))
-              ),
               React.createElement(Serif, { style: { display: 'block', fontSize: 38, color: '#fff', letterSpacing: '-0.02em', marginBottom: 12 } }, `R$ ${fmtBRL(sel)}`),
               React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 } },
                 React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px' } },
@@ -1937,7 +1874,7 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
               React.createElement('button', { onClick: () => onResult(sel), style: { width: '100%', padding: '13px', background: accent, border: 'none', borderRadius: 10, color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, 'Usar este precio en el conversor')
             )
           : React.createElement('div', { style: { position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' } },
-              React.createElement(Mono, { style: { fontSize: 11, color: 'rgba(255,255,255,0.32)', letterSpacing: '0.06em', background: 'rgba(0,0,0,0.4)', padding: '5px 14px', borderRadius: 99 } }, 'Escaneando autom\xE1ticamente\xB7\xB7\xB7')
+              React.createElement(Mono, { style: { fontSize: 11, color: 'rgba(255,255,255,0.32)', letterSpacing: '0.06em', background: 'rgba(0,0,0,0.4)', padding: '5px 14px', borderRadius: 99 } }, 'Buscando precios en el visor\xB7\xB7\xB7')
             )
       ),
 
