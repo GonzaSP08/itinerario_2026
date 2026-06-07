@@ -170,12 +170,13 @@ export default {
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
 
       try {
-        const result = await env.AI.run("@cf/llava-hf/llava-1.5-7b-hf", {
+        // Llama 3.2 Vision is significantly more accurate than LLaVA for digit reading
+        const result = await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
           image: [...bytes],
-          prompt: "Look at this image carefully. Find the largest or most prominent number visible — it is a price in Brazilian Reais. Numbers use comma as decimal separator (e.g. 1234,98 means 1234.98). Reply with ONLY the digits and decimal point, like: 1234.98 or 29.90 or 149.00. Do not include R$ or any other text. If no number is visible, reply: none",
-          max_tokens: 24,
+          prompt: "Transcribe EXACTLY the number shown in this image, digit by digit. Do not guess or approximate — copy exactly what you see. Reply with ONLY the digits and the separator character (comma or period). Nothing else.",
+          max_tokens: 32,
         });
-        const text = (result?.description || result?.response || "").trim();
+        const text = (result?.response || result?.description || "").trim();
         // Parse Brazilian number: may have period as thousands separator and comma as decimal
         // e.g. "1.234,98" → 1234.98, "1234,98" → 1234.98, "149.00" → 149.00
         const cleaned = text.replace(/[^\d.,]/g, "");

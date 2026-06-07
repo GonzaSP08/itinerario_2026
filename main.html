@@ -1768,10 +1768,17 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
     setScanning(true);
 
     try {
-      // Send the full frame — let the model find the most prominent price anywhere
-      c.width = v.videoWidth; c.height = v.videoHeight;
-      c.getContext('2d').drawImage(v, 0, 0);
-      const dataUrl = c.toDataURL('image/jpeg', 0.82);
+      // Crop to the targeting rectangle area and upscale so the number fills the image.
+      // Sending a tight crop gives the model a cleaner, larger number to read.
+      const vw = v.videoWidth, vh = v.videoHeight;
+      const cw = Math.round(vw * 0.78), ch = Math.round(vh * 0.28);
+      const cx = Math.round((vw - cw) / 2), cy = Math.round((vh - ch) / 2);
+      // Upscale 2× so digits are larger and clearer for OCR
+      c.width = cw * 2; c.height = ch * 2;
+      const ctx2 = c.getContext('2d');
+      ctx2.imageSmoothingEnabled = true; ctx2.imageSmoothingQuality = 'high';
+      ctx2.drawImage(v, cx, cy, cw, ch, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL('image/jpeg', 0.92);
 
       const res = await fetch(WORKER_URL + '/ocr-price', {
         method: 'POST',
