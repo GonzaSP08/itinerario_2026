@@ -1677,12 +1677,22 @@ function ensureTessWorker() {
         document.head.appendChild(s);
       });
     }
-    const w = await window.Tesseract.createWorker('eng', 1, {
-      workerPath: 'https://unpkg.com/tesseract.js@5/dist/worker.min.js',
-      langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-data@4.0.0',
-      corePath: 'https://unpkg.com/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
-      logger: (m) => { if (m.status === 'recognizing text') window.__tessProgress?.(Math.round(m.progress * 100)); }
-    });
+    // Use a blob: URL for the worker — avoids worker-src https://unpkg.com CSP issues
+    // on WKWebView (Chrome iOS / Safari iOS) which only respects worker-src blob:
+    const workerSrc = 'https://unpkg.com/tesseract.js@5/dist/worker.min.js';
+    const workerBlob = new Blob([`importScripts('${workerSrc}');`], { type: 'text/javascript' });
+    const workerBlobUrl = URL.createObjectURL(workerBlob);
+    let w;
+    try {
+      w = await window.Tesseract.createWorker('eng', 1, {
+        workerPath: workerBlobUrl,
+        langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-data@4.0.0',
+        corePath: 'https://unpkg.com/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+        logger: (m) => { if (m.status === 'recognizing text') window.__tessProgress?.(Math.round(m.progress * 100)); }
+      });
+    } finally {
+      URL.revokeObjectURL(workerBlobUrl);
+    }
     await w.setParameters({ tessedit_char_whitelist: 'R$0123456789,. ' });
     return w;
   })();
@@ -1716,9 +1726,12 @@ function CameraScanner({ T, accent, rates, onResult, onClose }) {
   React.useEffect(() => {
     let alive = true;
     window.__tessProgress = (p) => { if (alive) setScanPct(p); };
+    // Safety timeout — if Tesseract hangs (e.g. WKWebView worker restrictions), surface the error
+    const loadTimeout = setTimeout(() => { if (alive && phase === 'init') { _tessP = null; setPhase('error'); } }, 20000);
     (async () => {
       try {
         await ensureTessWorker();
+        clearTimeout(loadTimeout);
         if (!alive) return;
         if (canLive) {
           try {
@@ -1732,10 +1745,11 @@ function CameraScanner({ T, accent, rates, onResult, onClose }) {
           }
         }
         if (alive) setPhase('ready');
-      } catch (e) { if (alive) setPhase('error'); }
+      } catch (e) { clearTimeout(loadTimeout); if (alive) setPhase('error'); }
     })();
     return () => {
       alive = false;
+      clearTimeout(loadTimeout);
       window.__tessProgress = null;
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
