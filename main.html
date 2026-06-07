@@ -1677,17 +1677,21 @@ function ensureTessWorker() {
         document.head.appendChild(s);
       });
     }
-    // Use a blob: URL for the worker — avoids worker-src https://unpkg.com CSP issues
-    // on WKWebView (Chrome iOS / Safari iOS) which only respects worker-src blob:
-    const workerSrc = 'https://unpkg.com/tesseract.js@5/dist/worker.min.js';
-    const workerBlob = new Blob([`importScripts('${workerSrc}');`], { type: 'text/javascript' });
-    const workerBlobUrl = URL.createObjectURL(workerBlob);
+    // Fetch the worker script as text and create a blob: URL.
+    // This avoids both worker-src https://unpkg.com and importScripts CSP issues on WKWebView.
+    // The WASM fetch happens inside the worker and uses connect-src (already allows unpkg.com).
+    // Use non-SIMD WASM — SIMD/SharedArrayBuffer may not be available on iOS.
+    const workerText = await fetch('https://unpkg.com/tesseract.js@5/dist/worker.min.js').then(r => {
+      if (!r.ok) throw new Error('worker_fetch');
+      return r.text();
+    });
+    const workerBlobUrl = URL.createObjectURL(new Blob([workerText], { type: 'text/javascript' }));
     let w;
     try {
       w = await window.Tesseract.createWorker('eng', 1, {
         workerPath: workerBlobUrl,
         langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-data@4.0.0',
-        corePath: 'https://unpkg.com/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+        corePath: 'https://unpkg.com/tesseract.js-core@5/tesseract-core-lstm.wasm.js',
         logger: (m) => { if (m.status === 'recognizing text') window.__tessProgress?.(Math.round(m.progress * 100)); }
       });
     } finally {
