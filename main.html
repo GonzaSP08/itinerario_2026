@@ -9,14 +9,14 @@
 <meta name="theme-color" content="#0E6B70" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230E6B70'/><text y='.9em' font-size='80'>🏖️</text></svg>" />
+<link rel="apple-touch-icon" href="/icon-180.png" />
 <script>(function(){try{var t=JSON.parse(localStorage.getItem('it_tweaks_v1')||'{}');if(t.dark)document.documentElement.style.background='#0a1024';}catch(e){}}());if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(e){console.warn('SW registration failed:',e);});});}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
-<link rel="preconnect" href="https://itinerario-proxy.workers.dev" crossorigin />
+<link rel="preconnect" href="https://itinerario-proxy.pallottagonzalosebastian-pos.workers.dev" crossorigin />
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
 <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet" /></noscript>
 <style>
@@ -220,24 +220,9 @@ Object.assign(window, { useTweaks, TweaksPanel, TweakSection, TweakToggle, Tweak
 <!-- Itinerary App                                               -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <script>
-var __defProp = Object.defineProperty;
+// __defProp, __spreadValues etc. declared in the Tweaks script block above — no need to redeclare.
 var __defProps = Object.defineProperties;
 var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols = Object.getOwnPropertySymbols;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __propIsEnum = Object.prototype.propertyIsEnumerable;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues = (a, b) => {
-  for (var prop in b || (b = {}))
-    if (__hasOwnProp.call(b, prop))
-      __defNormalProp(a, prop, b[prop]);
-  if (__getOwnPropSymbols)
-    for (var prop of __getOwnPropSymbols(b)) {
-      if (__propIsEnum.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
-    }
-  return a;
-};
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 const { useState, useMemo, useRef, useEffect } = React;
 const makeTheme = (dark) => dark ? {
@@ -507,7 +492,7 @@ const MEALS = [
   { id: "me_c_rj14", name: "Espresso Carioca", kind: "Specialty \xB7 expresso", category: "Caf\xE9", moment: "Ma\xF1ana", area: "Ipanema", city: "Rio de Janeiro", note: "El specialty más veloz de Ipanema: espresso doble y biscoito de queijo en cinco minutos. El ritual matutino del carioca moderno.", rating: "4.4", price: "R$", booked: false, website: null },
   { id: "me_c_rj15", name: "Delírio Tropical", kind: "Sucoteca \xB7 jugos tropicais", category: "Caf\xE9", moment: "Ma\xF1ana", area: "Copacabana", city: "Rio de Janeiro", note: "La sucoteca más famosa de R\xEDo: acaí, açaí na tigela, caldo de cana y jugos de frutas tropicais recién exprimidas con granola carioca.", rating: "4.4", price: "R$", booked: false, website: null },
   { id: "me_c_rj16", name: "Slow Coffee", kind: "Specialty \xB7 methods", category: "Caf\xE9", moment: "Tarde", area: "Jardim Bot\xE2nico", city: "Rio de Janeiro", note: "Café de métodos lentos (Chemex, Hario V60, AeroPress) con granos de origen único del interior de Minas. Vista al Jardim Botânico.", rating: "4.5", price: "R$", booked: false, website: null },
-  { id: "me_c_rj17", name: "Forno de Minas Caf\xE9", kind: "Specialty \xB7 p\xE3o de queijo", category: "Caf\xE9", moment: "Ma\xF1ana", area: "Gá vea", city: "Rio de Janeiro", note: "Specialty y pão de queijo directo del horno cada hora. La combinación más aditiva de R\xEDo: cortado cremoso + bolinha quentinha.", rating: "4.3", price: "R$", booked: false, website: null },
+  { id: "me_c_rj17", name: "Forno de Minas Caf\xE9", kind: "Specialty \xB7 p\xE3o de queijo", category: "Caf\xE9", moment: "Ma\xF1ana", area: "Gávea", city: "Rio de Janeiro", note: "Specialty y pão de queijo directo del horno cada hora. La combinación más aditiva de R\xEDo: cortado cremoso + bolinha quentinha.", rating: "4.3", price: "R$", booked: false, website: null },
   { id: "me_c_rj18", name: "Caf\xE9 Jobi", kind: "Caf\xE9 \xB7 boteco fusion", category: "Caf\xE9", moment: "Brunch", area: "Leblon", city: "Rio de Janeiro", note: "El boteco más querido del Leblon (Jobi) tiene su rincón de café en el brunch: specialty con brigadeiro de nata y torta de milho casera.", rating: "4.3", price: "R$", booked: false, website: null },
   { id: "me_c_rj19", name: "Weligton Caf\xE9", kind: "Specialty \xB7 Urca", category: "Caf\xE9", moment: "Ma\xF1ana", area: "Urca", city: "Rio de Janeiro", note: "El único specialty de la Urca, el barrio más apacible de R\xEDo al pie del Sugarloaf. Vista a la bahía desde la mesita de la veranda.", rating: "4.5", price: "R$", booked: false, website: null },
   { id: "me_c_rj20", name: "Bistr\xF4 do Pal\xE1cio", kind: "Specialty \xB7 Centro histórico", category: "Caf\xE9", moment: "Tarde", area: "Centro", city: "Rio de Janeiro", note: "Café dentro del Paço Imperial del s.XVIII, restaurado. Specialty y torta de limão con vista a la Praça XV, la plaza fundacional de Río.", rating: "4.4", price: "R$$", booked: false, website: null },
@@ -564,9 +549,10 @@ const SECTIONS = [
   { id: "comidas", label: "Comidas", count: MEALS.length, span: "SP \xB7 RJ", meta: "20 por categor\xEDa \xB7 2 ciudades", color: "#E8602C" },
   { id: "clima", label: "Clima", count: WEATHER_FORECAST_DAYS, span: "Posadas \xB7 Foz \xB7 SP \xB7 RJ", meta: `Pron\xF3stico ${WEATHER_FORECAST_DAYS} d\xEDas`, color: "#0891B2" },
   { id: "frases", label: "Frases \xFAtiles", count: FRASES.length, span: "Saludos \xB7 Restaurante \xB7 Pagos", meta: "Con pronunciaci\xF3n fon\xE9tica", color: "#16A085" },
-  { id: "mapa", label: "Mapa", count: ACTIVITIES.length + MUSEUMS.length + SHOPPINGS.length + MEALS.length + STAYS.length, span: "SP \xB7 RJ", meta: "Todos los puntos de inter\xE9s", color: "#10B981" }
+  { id: "mapa", label: "Mapa", count: ACTIVITIES.length + MUSEUMS.length + SHOPPINGS.length + MEALS.length + STAYS.length, span: "SP \xB7 RJ", meta: "Todos los puntos de inter\xE9s", color: "#10B981" },
+  { id: "cambio", label: "Conversor", count: 3, span: "R$ \xB7 USD \xB7 ARS", meta: "Cotizaci\xF3n en tiempo real", color: "#F59E0B" }
 ];
-const SECTION_EMOJIS = { vuelos: "✈️", alojamientos: "🏠", actividades: "🎯", museos: "🏛️", shoppings: "🛍️", comidas: "🍽️", clima: "🌤️", frases: "💬", mapa: "🗺️" };
+const SECTION_EMOJIS = { vuelos: "✈️", alojamientos: "🏠", actividades: "🎯", museos: "🏛️", shoppings: "🛍️", comidas: "🍽️", clima: "🌤️", frases: "💬", mapa: "🗺️", cambio: "💱" };
 function getDaysUntil(dateStr) {
   const [day, month, year] = dateStr.split(".");
   const target = new Date(Number(year), Number(month) - 1, Number(day));
@@ -656,20 +642,18 @@ function Hero({ accent, T, onToggleDark }) {
   )), /* @__PURE__ */ React.createElement(Serif, { style: { marginTop: 8, fontSize: 92, lineHeight: 0.95, color: T.fg, letterSpacing: "-0.025em", display: "block", fontStyle: "italic", position: "relative", zIndex: 1 } }, TRIP.city), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16, position: "relative", zIndex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18, display: "flex", alignItems: "baseline", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color: T.fg } }, TRIP.dateStart, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), margin: "0 8px" } }, "\u2192"), TRIP.dateEnd, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), marginLeft: 8 } }, "\xB7 ", TRIP.year)), /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 99, background: `${accent}1a`, border: `1px solid ${accent}42` } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: accent, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 } }, daysLeft > 0 ? `T-${daysLeft} d\xEDas` : (1 - daysLeft) <= TRIP.days ? `D\xEDa ${1 - daysLeft} / ${TRIP.days}` : "\xA1Termin\xF3!"))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 22, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", borderTop: `1px solid ${fade(T, 0.1)}`, borderBottom: `1px solid ${fade(T, 0.1)}` } }, [["D\xEDas", TRIP.days], ["Viajeros", TRIP.travelers]].map(([k, v], i) => /* @__PURE__ */ React.createElement("div", { key: k, style: { padding: "12px 0", textAlign: i === 0 ? "left" : "right" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 } }, k), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg } }, v)))));
 }
 function SectionList({ onOpen, accent, T }) {
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 0" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, "Secciones"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.1em" } }, SECTIONS.length, " \xEDtems")), /* @__PURE__ */ React.createElement("div", { style: { borderTop: `1px solid ${fade(T, 0.1)}` } }, SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 0" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, "Secciones"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.1em" } }, SECTIONS.length, " \xEDtems")), /* @__PURE__ */ React.createElement("div", { role: "list", style: { borderTop: `1px solid ${fade(T, 0.1)}` } }, SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement(
     "button",
     {
       key: s.id,
+      role: "listitem",
+      "aria-label": `${s.label} — ${s.meta}`,
       onClick: () => onOpen(s.id),
       style: { width: "100%", textAlign: "left", cursor: "pointer", background: "transparent", border: "none", borderBottom: `1px solid ${fade(T, 0.1)}`, padding: "20px 22px 20px", display: "flex", alignItems: "center", gap: 14, color: T.fg, fontFamily: "inherit", transition: "background .15s ease, transform .15s ease" },
-      onMouseEnter: (e) => {
-        e.currentTarget.style.background = `${s.color}0d`;
-        e.currentTarget.style.transform = "translateX(4px)";
-      },
-      onMouseLeave: (e) => {
-        e.currentTarget.style.background = "transparent";
-        e.currentTarget.style.transform = "none";
-      }
+      onMouseEnter: (e) => { e.currentTarget.style.background = `${s.color}0d`; e.currentTarget.style.transform = "translateX(4px)"; },
+      onMouseLeave: (e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = "none"; },
+      onTouchStart: (e) => { e.currentTarget.style.background = `${s.color}0d`; },
+      onTouchEnd: (e) => { e.currentTarget.style.background = "transparent"; }
     },
     /* @__PURE__ */ React.createElement("span", { style: { width: 4, height: 38, borderRadius: 2, background: s.color, flexShrink: 0 } }),
     /* @__PURE__ */ React.createElement("span", { style: { fontSize: 20, lineHeight: 1, width: 28, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" } }, SECTION_EMOJIS[s.id] || "•"),
@@ -680,7 +664,16 @@ function SectionList({ onOpen, accent, T }) {
 function SectionTopBar({ onBack, accent, T, current }) {
   const idx = SECTIONS.findIndex((s) => s.id === current);
   const sColor = idx >= 0 ? SECTIONS[idx].color : accent;
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "24px 14px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", background: `linear-gradient(to bottom, ${sColor}12, transparent)` } }, /* @__PURE__ */ React.createElement("button", { onClick: onBack, style: { display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "none", cursor: "pointer", color: T.fg, padding: "6px 8px", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" } }, /* @__PURE__ */ React.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6" }, /* @__PURE__ */ React.createElement("path", { d: "M19 12H5M11 6l-6 6 6 6", strokeLinecap: "round", strokeLinejoin: "round" })), "Volver"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, TRIP.city, " \xB7 \xA7 ", String(idx + 1).padStart(2, "0")));
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "24px 14px 10px", background: `linear-gradient(to bottom, ${sColor}12, transparent)` } },
+    /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
+      /* @__PURE__ */ React.createElement("button", { onClick: onBack, style: { display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "none", cursor: "pointer", color: T.fg, padding: "6px 8px", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" } },
+        /* @__PURE__ */ React.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6" }, /* @__PURE__ */ React.createElement("path", { d: "M19 12H5M11 6l-6 6 6 6", strokeLinecap: "round", strokeLinejoin: "round" })), "Volver"),
+      /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, TRIP.city, " \xB7 \xA7 ", String(idx + 1).padStart(2, "0"))
+    ),
+    /* @__PURE__ */ React.createElement("div", { role: "tablist", "aria-label": "Secciones", style: { display: "flex", gap: 4, justifyContent: "center", marginTop: 10, paddingBottom: 2 } },
+      SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement("div", { key: s.id, role: "tab", "aria-selected": i === idx, style: { height: 3, borderRadius: 2, background: i === idx ? (SECTIONS[idx] ? SECTIONS[idx].color : accent) : fade(T, 0.12), transition: "all .25s ease", width: i === idx ? 18 : 6, flexShrink: 0 } }))
+    )
+  );
 }
 function BrandIcon({ slug, color, size = 13 }) {
   if (!/^[a-zA-Z0-9\-]+$/.test(slug || "")) return null;
@@ -695,104 +688,45 @@ function BrandIcon({ slug, color, size = 13 }) {
     }
   );
 }
+function TransportChip({ T, href, label, icon, color, onClick: onChipClick }) {
+  return /* @__PURE__ */ React.createElement("a", { href, target: "_blank", rel: "noopener noreferrer", onClick: onChipClick || ((e) => e.stopPropagation()), style: { flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 8px", borderRadius: 10, border: `1px solid ${fade(T, 0.14)}`, background: "transparent", color: T.fg, textDecoration: "none", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", transition: "border-color .15s ease, background .15s ease" }, onMouseEnter: (e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = `${color}1f`; }, onMouseLeave: (e) => { e.currentTarget.style.borderColor = fade(T, 0.14); e.currentTarget.style.background = "transparent"; } }, icon, /* @__PURE__ */ React.createElement("span", null, label));
+}
+function UberBadge({ T }) {
+  return /* @__PURE__ */ React.createElement("span", { style: { display: "flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: T.dark ? "#fff" : "#000", color: T.dark ? "#000" : "#fff", fontSize: 8, fontWeight: 800, fontFamily: "sans-serif", flexShrink: 0, lineHeight: 1 } }, "U");
+}
 function TransportActions({ query, T, accent, airbnbUrl, mapsUrl, bookingUrl, websiteUrl }) {
   const enc = encodeURIComponent(query);
   const maps = mapsUrl || `https://www.google.com/maps/search/?api=1&query=${enc}`;
   const coordMatch = mapsUrl && mapsUrl.match(/query=([-\d.]+)%2C([-\d.]+)/);
   const lat = coordMatch ? coordMatch[1] : null;
   const lng = coordMatch ? coordMatch[2] : null;
-  const uberWeb = lat && lng ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
-  const uberScheme = lat && lng ? `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}`;
-  const handleUber = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.href = uberScheme;
-    setTimeout(() => window.open(uberWeb, "_blank"), 1500);
-  };
+  const dropJson = lat && lng ? encodeURIComponent(JSON.stringify({ latitude: parseFloat(lat), longitude: parseFloat(lng), addressLine1: query, addressLine2: query })) : null;
+  const uberScheme = lat && lng ? `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${enc}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}` : null;
+  const uberWeb = dropJson ? `https://m.uber.com/looking?pickup=my_location&drop[0]=${dropJson}` : `https://m.uber.com/looking?pickup=my_location`;
   const cabifyScheme = lat && lng ? `cabify://route/new?stops[0][loc]=${lat},${lng}&stops[0][label]=${enc}` : null;
-  const cabifyWeb = `https://cabify.com/es/cities`;
-  const handleCabify = (e) => {
+  const cabifyWeb = lat && lng ? `https://cabify.com/ride?origin=my_location&destination[latitude]=${lat}&destination[longitude]=${lng}&destination[alias]=${enc}` : `https://cabify.com/es/cities`;
+  const handleRide = (scheme, fallbackUrl) => (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (cabifyScheme) {
-      window.location.href = cabifyScheme;
-      setTimeout(() => window.open(cabifyWeb, "_blank"), 1800);
+    if (scheme) {
+      const fallback = setTimeout(() => { if (!document.hidden) window.location.href = fallbackUrl; }, 1800);
+      const onVis = () => { if (!document.hidden) clearTimeout(fallback); document.removeEventListener("visibilitychange", onVis); };
+      document.addEventListener("visibilitychange", onVis);
+      window.location.href = scheme;
     } else {
-      window.open(cabifyWeb, "_blank");
+      window.location.href = fallbackUrl;
     }
   };
-  const Chip = ({ href, label, icon, color, onClick: onChipClick }) => /* @__PURE__ */ React.createElement(
-    "a",
-    {
-      href,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      onClick: onChipClick || ((e) => e.stopPropagation()),
-      style: { flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 8px", borderRadius: 10, border: `1px solid ${fade(T, 0.14)}`, background: "transparent", color: T.fg, textDecoration: "none", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", transition: "border-color .15s ease, background .15s ease" },
-      onMouseEnter: (e) => {
-        e.currentTarget.style.borderColor = color;
-        e.currentTarget.style.background = `${color}1f`;
-      },
-      onMouseLeave: (e) => {
-        e.currentTarget.style.borderColor = fade(T, 0.14);
-        e.currentTarget.style.background = "transparent";
-      }
-    },
-    icon,
-    /* @__PURE__ */ React.createElement("span", null, label)
-  );
-  const uberColor = T.dark ? "ffffff" : "000000";
-  return /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em" } }, "C\xF3mo llegar"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.3), letterSpacing: "0.04em" } }, query.length > 28 ? query.slice(0, 28) + "\u2026" : query)), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: maps,
-      label: "Maps",
-      color: "#4285F4",
-      icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "googlemaps", color: "4285F4" })
-    }
-  ), /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: uberWeb,
-      onClick: handleUber,
-      label: "Uber",
-      color: T.dark ? "#fff" : "#000",
-      icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "uber", color: uberColor })
-    }
-  ), /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: cabifyWeb,
-      onClick: handleCabify,
-      label: "Cabify",
-      color: "#9B59B6",
-      icon: /* @__PURE__ */ React.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "#9B59B6" }, /* @__PURE__ */ React.createElement("path", { d: "M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.2 17.4c-3 0-5.4-2.4-5.4-5.4s2.4-5.4 5.4-5.4c1.35 0 2.58.5 3.51 1.32l-1.62 1.62a3.06 3.06 0 10.42 4.44l1.62 1.62A5.34 5.34 0 0110.8 17.4z" }))
-    }
-  ), airbnbUrl && /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: airbnbUrl,
-      label: "Airbnb",
-      color: "#FF5A5F",
-      icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "airbnb", color: "FF5A5F" })
-    }
-  ), bookingUrl && /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: bookingUrl,
-      label: "Booking",
-      color: "#003580",
-      icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "bookingdotcom", color: "003580" })
-    }
-  ), websiteUrl && /* @__PURE__ */ React.createElement(
-    Chip,
-    {
-      href: websiteUrl,
-      label: "Web",
-      color: accent,
-      icon: /* @__PURE__ */ React.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: accent, strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "10" }), /* @__PURE__ */ React.createElement("path", { d: "M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" }))
-    }
-  )));
+  const handleUber = handleRide(uberScheme, uberWeb);
+  const handleCabify = handleRide(cabifyScheme, cabifyWeb);
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    (navigator.clipboard ? navigator.clipboard.writeText(query) : Promise.resolve(document.execCommand("copy", true, query)))
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
+      .catch(() => {});
+  };
+  return /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em" } }, "C\xF3mo llegar"), /* @__PURE__ */ React.createElement("button", { onClick: handleCopy, title: "Copiar direcci\xF3n", style: { display: "inline-flex", alignItems: "center", gap: 4, background: copied ? `${accent}18` : "transparent", border: copied ? `1px solid ${accent}40` : `1px solid ${fade(T, 0.10)}`, borderRadius: 6, padding: "2px 7px 2px 5px", cursor: "pointer", transition: "all .2s ease", color: copied ? accent : fade(T, 0.45) } }, copied ? /* @__PURE__ */ React.createElement("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M20 6L9 17l-5-5" })) : /* @__PURE__ */ React.createElement("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("rect", { x: "9", y: "9", width: "13", height: "13", rx: "2" }), /* @__PURE__ */ React.createElement("path", { d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" })), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, letterSpacing: "0.04em", color: "currentColor" } }, copied ? "Copiado" : query.length > 22 ? query.slice(0, 22) + "\u2026" : query))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement(TransportChip, { T, href: maps, label: "Maps", color: "#4285F4", icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "googlemaps", color: "4285F4" }) }), /* @__PURE__ */ React.createElement(TransportChip, { T, href: uberWeb, onClick: handleUber, label: "Uber", color: T.dark ? "#fff" : "#000", icon: /* @__PURE__ */ React.createElement(UberBadge, { T }) }), /* @__PURE__ */ React.createElement(TransportChip, { T, href: cabifyWeb, onClick: handleCabify, label: "Cabify", color: "#9B59B6", icon: /* @__PURE__ */ React.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "#9B59B6" }, /* @__PURE__ */ React.createElement("path", { d: "M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.2 17.4c-3 0-5.4-2.4-5.4-5.4s2.4-5.4 5.4-5.4c1.35 0 2.58.5 3.51 1.32l-1.62 1.62a3.06 3.06 0 10.42 4.44l1.62 1.62A5.34 5.34 0 0110.8 17.4z" })) }), airbnbUrl && /* @__PURE__ */ React.createElement(TransportChip, { T, href: airbnbUrl, label: "Airbnb", color: "#FF5A5F", icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "airbnb", color: "FF5A5F" }) }), bookingUrl && /* @__PURE__ */ React.createElement(TransportChip, { T, href: bookingUrl, label: "Booking", color: "#003580", icon: /* @__PURE__ */ React.createElement(BrandIcon, { slug: "bookingdotcom", color: "003580" }) }), websiteUrl && /* @__PURE__ */ React.createElement(TransportChip, { T, href: websiteUrl, label: "Web", color: accent, icon: /* @__PURE__ */ React.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: accent, strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "10" }), /* @__PURE__ */ React.createElement("path", { d: "M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" })) })));
 }
 function FadeIn({ children, delay = 0 }) {
   const ref = React.useRef(null);
@@ -849,6 +783,22 @@ function ShareButton({ data, T, accent }) {
               /* @__PURE__ */ React.createElement("line", { x1: "8.59", y1: "13.51", x2: "15.42", y2: "17.49" }),
               /* @__PURE__ */ React.createElement("line", { x1: "15.41", y1: "6.51", x2: "8.59", y2: "10.49" })),
             "Compartir")));
+}
+function useVisited(id) {
+  const key = `visited_${id}`;
+  const [visited, setVisited] = React.useState(() => { try { return localStorage.getItem(key) === "1"; } catch(e) { return false; } });
+  const toggle = React.useCallback((e) => {
+    e.stopPropagation();
+    setVisited((v) => { const next = !v; try { if (next) localStorage.setItem(key, "1"); else localStorage.removeItem(key); } catch(e) {} return next; });
+  }, [key]);
+  return [visited, toggle];
+}
+function VisitedToggle({ id, T, accent }) {
+  const [visited, toggle] = useVisited(id);
+  return /* @__PURE__ */ React.createElement("button", { onClick: toggle, "aria-label": visited ? "Marcar como no visitado" : "Marcar como visitado", style: { display: "inline-flex", alignItems: "center", gap: 5, marginTop: 10, background: visited ? `${accent}18` : "transparent", border: `1px solid ${visited ? accent + "55" : fade(T, 0.15)}`, borderRadius: 99, padding: "5px 12px", color: visited ? accent : fade(T, 0.45), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 10, fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em", transition: "all .15s ease" } },
+    /* @__PURE__ */ React.createElement("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: visited ? "currentColor" : "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M20 6L9 17l-5-5" })),
+    visited ? "Visitado" : "Marcar como visitado"
+  );
 }
 function Card({ children, onClick, expanded, accent, T, shareData }) {
   const [hovered, setHovered] = React.useState(false);
@@ -962,7 +912,7 @@ function PassengerRow({ pax, accent, T }) {
     /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "5px 0" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg, flex: 1 } }, pax.name),
       /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, fontWeight: 700, color: accent, background: `${accent}14`, border: `1px solid ${accent}30`, borderRadius: 6, padding: "2px 8px", letterSpacing: "0.06em" } }, pax.seat),
-      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "10px 12px", color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", transition: "color .15s" } }, "ⓘ")
+      /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); setOpen((o) => !o); }, "aria-label": "Ver pol\xEDtica de equipaje", style: { background: "transparent", border: "none", cursor: "pointer", padding: "12px 14px", minWidth: 44, minHeight: 44, color: open ? accent : fade(T, 0.4), fontSize: 15, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", transition: "color .15s" } }, "ⓘ")
     ),
     open && /* @__PURE__ */ React.createElement("div", { style: { margin: "2px 0 8px", padding: "8px 12px", background: fade(T, 0.04), borderRadius: 8, borderLeft: `2px solid ${accent}`, animation: "expandin .15s ease" } },
       /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 } }, "Equipaje incluido"),
@@ -979,11 +929,26 @@ function FlightCard({ f, liveStatus, onRefresh, accent, expanded, onToggle, T })
   const live = (_a = liveStatus == null ? void 0 : liveStatus.data) != null ? _a : null;
   const error = (_b = liveStatus == null ? void 0 : liveStatus.error) != null ? _b : null;
   const statusInfo = live ? FLIGHT_STATUS_LABELS[live.status] || { label: live.status, tone: "neutral" } : null;
+  const daysUntilFlight = Math.ceil((new Date(f.isoDate + "T00:00:00") - new Date()) / 864e5);
+  const isFutureFlight = daysUntilFlight > 1;
+  const makeICS = React.useCallback(() => {
+    const [y, mo, d] = f.isoDate.split("-");
+    const [dh, dm] = f.dep.time.split(":");
+    const [ah, am] = f.arr.time.split(":");
+    const fmt = (yr, mn, dy, hr, mi) => `${yr}${mn}${dy}T${hr}${mi}00`;
+    const dtStart = fmt(y, mo, d, dh, dm);
+    const dtEnd = fmt(y, mo, d, ah, am);
+    const ics = [`BEGIN:VCALENDAR`, `VERSION:2.0`, `PRODID:-//Brasil2026//ES`, `BEGIN:VEVENT`, `UID:${f.id}@brasil2026`, `DTSTART:${dtStart}`, `DTEND:${dtEnd}`, `SUMMARY:✈ ${f.code} ${f.dep.code}→${f.arr.code}`, `DESCRIPTION:${f.airline} · ${f.dep.city} → ${f.arr.city} · Localizador: ${f.locator}`, `LOCATION:${f.dep.city} (${f.dep.code})`, `END:VEVENT`, `END:VCALENDAR`].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${f.code.replace(" ", "")}_${f.isoDate}.ics`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [f]);
   const depTime = live ? localTime((_d = (_c = live.departure) == null ? void 0 : _c.actualTime) == null ? void 0 : _d.local) || localTime((_f = (_e = live.departure) == null ? void 0 : _e.scheduledTime) == null ? void 0 : _f.local) || f.dep.time : f.dep.time;
   const arrTime = live ? localTime((_h = (_g = live.arrival) == null ? void 0 : _g.actualTime) == null ? void 0 : _h.local) || localTime((_j = (_i = live.arrival) == null ? void 0 : _i.predictedTime) == null ? void 0 : _j.local) || localTime((_l = (_k = live.arrival) == null ? void 0 : _k.scheduledTime) == null ? void 0 : _l.local) || f.arr.time : f.arr.time;
   const arrSchedTime = live ? localTime((_n = (_m = live.arrival) == null ? void 0 : _m.scheduledTime) == null ? void 0 : _n.local) : null;
   const isDelayed = arrSchedTime && arrTime !== arrSchedTime;
-  return /* @__PURE__ */ React.createElement(Card, { onClick: onToggle, expanded, accent, T, shareData: { title: f.code + " \xB7 " + f.dep.code + "\u2192" + f.arr.code, text: f.dep.city + " \u2192 " + f.arr.city + " \xB7 " + f.dep.date, url: f.checkinUrl } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.65), textTransform: "uppercase", letterSpacing: "0.12em" } }, f.leg, " \xB7 ", f.code), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, notFetched ? /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.22), letterSpacing: "0.06em" } }, "—") : error || !live ? /* @__PURE__ */ React.createElement(StatusPill, { tone: "neutral", T, accent }, "Sin info a\xFAn") : /* @__PURE__ */ React.createElement(StatusPill, { tone: statusInfo.tone, T, accent }, statusInfo.label), /* @__PURE__ */ React.createElement(RefreshBtn, { onRefresh, T, accent }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 30, color: T.fg, lineHeight: 1 } }, f.dep.code), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: T.fg, marginTop: 6 } }, depTime), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.35), marginTop: 2 } }, f.dep.date)), /* @__PURE__ */ React.createElement("div", { style: { position: "relative", height: 1, background: fade(T, 0.18) } }, /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: T.bg, padding: "0 6px" } }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: accent, strokeWidth: "1.6" }, /* @__PURE__ */ React.createElement("path", { d: "M2 12l20-9-9 20-2-9-9-2z" })))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right" } }, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 30, color: T.fg, lineHeight: 1 } }, f.arr.code), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", alignItems: "baseline", justifyContent: "flex-end", gap: 5 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: isDelayed ? "#E8602C" : T.fg } }, arrTime), isDelayed && /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.35), textDecoration: "line-through" } }, arrSchedTime)), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.35), marginTop: 2 } }, f.arr.date))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 14, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, display: "flex", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 7 } }, /* @__PURE__ */ React.createElement("img", { src: `https://www.gstatic.com/flights/airline_logos/70px/${f.code.split(" ")[0]}.png`, alt: f.airline, width: "18", height: "18", loading: "lazy", style: { borderRadius: 4, objectFit: "contain", background: "#fff", padding: 1 }, onError: (e) => {
+  return /* @__PURE__ */ React.createElement(Card, { onClick: onToggle, expanded, accent, T, shareData: { title: f.code + " \xB7 " + f.dep.code + "\u2192" + f.arr.code, text: f.dep.city + " \u2192 " + f.arr.city + " \xB7 " + f.dep.date, url: f.checkinUrl } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.65), textTransform: "uppercase", letterSpacing: "0.12em" } }, f.leg, " \xB7 ", f.code), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, notFetched ? (isFutureFlight ? /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.38), letterSpacing: "0.04em", textAlign: "right", lineHeight: 1.3 } }, "Info desde\n", f.checkinOpens.split(" \xB7 ")[0]) : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.22), letterSpacing: "0.06em" } }, "—")) : error || !live ? /* @__PURE__ */ React.createElement(StatusPill, { tone: "neutral", T, accent }, "Sin info a\xFAn") : /* @__PURE__ */ React.createElement(StatusPill, { tone: statusInfo.tone, T, accent }, statusInfo.label), /* @__PURE__ */ React.createElement(RefreshBtn, { onRefresh, T, accent }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 30, color: T.fg, lineHeight: 1 } }, f.dep.code), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: T.fg, marginTop: 6 } }, depTime), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.35), marginTop: 2 } }, f.dep.date)), /* @__PURE__ */ React.createElement("div", { style: { position: "relative", height: 1, background: fade(T, 0.18) } }, /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: T.bg, padding: "0 6px" } }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: accent, strokeWidth: "1.6" }, /* @__PURE__ */ React.createElement("path", { d: "M2 12l20-9-9 20-2-9-9-2z" })))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right" } }, /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 30, color: T.fg, lineHeight: 1 } }, f.arr.code), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", alignItems: "baseline", justifyContent: "flex-end", gap: 5 } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: isDelayed ? "#E8602C" : T.fg } }, arrTime), isDelayed && /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.35), textDecoration: "line-through" } }, arrSchedTime)), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.35), marginTop: 2 } }, f.arr.date))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 14, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, display: "flex", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 7 } }, /* @__PURE__ */ React.createElement("img", { src: `https://www.gstatic.com/flights/airline_logos/70px/${f.code.split(" ")[0]}.png`, alt: f.airline, width: "18", height: "18", loading: "lazy", style: { borderRadius: 4, objectFit: "contain", background: "#fff", padding: 1 }, onError: (e) => {
     e.currentTarget.style.display = "none";
   } }), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.75) } }, f.airline)), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.75) } }, f.stops, " \xB7 ", f.duration)), expanded && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 14, paddingTop: 14, borderTop: `1px solid ${fade(T, 0.07)}`, animation: "expandin .22s ease" } }, [
     ["Cabina", f.cabin],
@@ -992,7 +957,7 @@ function FlightCard({ f, liveStatus, onRefresh, accent, expanded, onToggle, T })
     ((_o = live == null ? void 0 : live.aircraft) == null ? void 0 : _o.model) ? ["Aeronave", live.aircraft.model] : null,
     ((_p = live == null ? void 0 : live.arrival) == null ? void 0 : _p.terminal) ? ["Terminal", `Terminal ${live.arrival.terminal}`] : null,
     ((_q = live == null ? void 0 : live.departure) == null ? void 0 : _q.terminal) ? ["Terminal salida", `Terminal ${live.departure.terminal}`] : null
-  ].filter(Boolean).map(([k, v]) => /* @__PURE__ */ React.createElement("div", { key: k, style: { display: "flex", justifyContent: "space-between", padding: "6px 0" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em" } }, k), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg } }, v))), f.passengers && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 } }, "Asientos"), f.passengers.map((pax) => /* @__PURE__ */ React.createElement(PassengerRow, { key: pax.name, pax, accent, T }))), f.checkinUrl && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 } }, "Check-in online"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.65) } }, "Abre ", f.checkinOpens)), /* @__PURE__ */ React.createElement("a", { href: f.checkinUrl, target: "_blank", rel: "noopener noreferrer", onClick: (e) => e.stopPropagation(), style: { display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, background: accent, color: "#fff", textDecoration: "none", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", flexShrink: 0 } }, "↗ Hacer check-in"))), /* @__PURE__ */ React.createElement(TransportActions, { query: `Aeropuerto ${f.dep.city} ${f.dep.code}`, T, accent })));
+  ].filter(Boolean).map(([k, v]) => /* @__PURE__ */ React.createElement("div", { key: k, style: { display: "flex", justifyContent: "space-between", padding: "6px 0" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em" } }, k), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg } }, v))), f.passengers && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 } }, "Asientos"), f.passengers.map((pax) => /* @__PURE__ */ React.createElement(PassengerRow, { key: pax.name, pax, accent, T }))), f.checkinUrl && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 } }, "Check-in online"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.65) } }, "Abre ", f.checkinOpens)), /* @__PURE__ */ React.createElement("a", { href: f.checkinUrl, target: "_blank", rel: "noopener noreferrer", onClick: (e) => e.stopPropagation(), style: { display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, background: accent, color: "#fff", textDecoration: "none", fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", flexShrink: 0 } }, "↗ Hacer check-in"))), /* @__PURE__ */ React.createElement(TransportActions, { query: `Aeropuerto ${f.dep.city} ${f.dep.code}`, T, accent }), /* @__PURE__ */ React.createElement("button", { onClick: (e) => { e.stopPropagation(); makeICS(); }, style: { marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${fade(T, 0.15)}`, borderRadius: 99, padding: "6px 14px", color: fade(T, 0.55), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 10, fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em", transition: "all .15s ease" } }, /* @__PURE__ */ React.createElement("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "4", width: "18", height: "18", rx: "2" }), /* @__PURE__ */ React.createElement("path", { d: "M16 2v4M8 2v4M3 10h18" })), "Agregar al calendario")));
 }
 function StayCard({ s, expanded, onToggle, accent, T }) {
   const statusTone = s.status === "Confirmado" ? "ok" : s.status === "Pendiente" ? "warn" : "warn";
@@ -1024,7 +989,7 @@ function ActivityRow({ a, expanded, onToggle, accent, T }) {
       style: { display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12, fontSize: 11, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 600, color: accent, textDecoration: "none", borderBottom: `1px solid ${accent}55` }
     },
     "\u2197 Sitio web oficial"
-  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${a.name}, ${a.area}, Brasil`, T, accent })));
+  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${a.name}, ${a.area}, Brasil`, T, accent }), /* @__PURE__ */ React.createElement(VisitedToggle, { id: a.id, T, accent })));
 }
 function MuseumCard({ m, expanded, onToggle, accent, T }) {
   return /* @__PURE__ */ React.createElement(Card, { onClick: onToggle, expanded, accent, T, shareData: { title: m.name, text: m.kind + " \xB7 " + m.area + (m.ticket ? " \xB7 " + m.ticket : ""), url: m.website } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 10, color: fade(T, 0.65), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 } }, m.kind, " \xB7 ", m.area), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg, lineHeight: 1.1, display: "block", letterSpacing: "-0.01em" } }, m.name)), m.rating && /* @__PURE__ */ React.createElement(Mono, { style: { flexShrink: 0, fontSize: 13, fontWeight: 800, color: accent } }, "\u2605 ", m.rating)), expanded && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, animation: "expandin .22s ease" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.78), lineHeight: 1.5, marginBottom: 12 } }, m.note), m.hours && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 8 } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 } }, "Horario"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg } }, m.hours)), m.ticket && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 } }, "Entrada"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: accent, fontWeight: 700 } }, m.ticket)), m.website && /* @__PURE__ */ React.createElement(
@@ -1037,7 +1002,7 @@ function MuseumCard({ m, expanded, onToggle, accent, T }) {
       style: { display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12, fontSize: 11, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 600, color: accent, textDecoration: "none", borderBottom: `1px solid ${accent}55` }
     },
     "\u2197 Sitio web oficial"
-  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${m.name}, ${m.area}, Brasil`, T, accent })));
+  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${m.name}, ${m.area}, Brasil`, T, accent }), /* @__PURE__ */ React.createElement(VisitedToggle, { id: m.id, T, accent })));
 }
 function ShoppingCard({ s, expanded, onToggle, accent, T }) {
   return /* @__PURE__ */ React.createElement(Card, { onClick: onToggle, expanded, accent, T, shareData: { title: s.name, text: s.kind + " \xB7 " + s.area } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 10, color: fade(T, 0.65), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 } }, s.kind, " \xB7 ", s.area), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg, lineHeight: 1.1, display: "block", letterSpacing: "-0.01em" } }, s.name)), s.rating && /* @__PURE__ */ React.createElement(Mono, { style: { flexShrink: 0, fontSize: 13, fontWeight: 800, color: accent } }, "\u2605 ", s.rating)), expanded && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12, paddingTop: 12, borderTop: `1px solid ${fade(T, 0.07)}`, animation: "expandin .22s ease" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.78), lineHeight: 1.5, marginBottom: 12 } }, s.note), s.hours && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 } }, "Horario"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: T.fg } }, s.hours)), /* @__PURE__ */ React.createElement(TransportActions, { query: `${s.name}, ${s.area}, Brasil`, T, accent })));
@@ -1063,7 +1028,7 @@ function MealCard({ m, expanded, onToggle, accent, T }) {
       style: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: accent, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700, textDecoration: "none", marginBottom: 12 }
     },
     "\u2197 Sitio web"
-  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${m.name}, ${m.area}, Brasil`, T, accent })));
+  ), /* @__PURE__ */ React.createElement(TransportActions, { query: `${m.name}, ${m.area}, Brasil`, T, accent }), /* @__PURE__ */ React.createElement(VisitedToggle, { id: m.id, T, accent })));
 }
 const CITIES = ["S\xE3o Paulo", "Rio de Janeiro"];
 const MEAL_CATEGORIES = ["Restaurante", "Bar", "Caf\xE9"];
@@ -1101,6 +1066,11 @@ function WeatherIcon({ code, size = 26, dark = false }) {
   if (code <= 48) return /* @__PURE__ */ React.createElement("svg", __spreadProps(__spreadValues({}, w), { stroke: "#9DAFC0", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("path", { d: "M4 6h16M4 10h14M4 14h12M4 18h9" }));
   const cloud = /* @__PURE__ */ React.createElement("path", { d: cloudPath, fill: "#9DAFC0" });
   if (code <= 55) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("path", { stroke: rainColor, strokeWidth: "1.8", d: "M10 21l-.5 2M13 21l-.5 2" }));
+  if (code <= 67) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("circle", { cx: "10", cy: "21.5", r: "1", fill: "#9DAFC0" }), /* @__PURE__ */ React.createElement("circle", { cx: "14", cy: "21.5", r: "1", fill: "#9DAFC0" }), /* @__PURE__ */ React.createElement("path", { stroke: rainColor, strokeWidth: "1.6", d: "M10 19.5l-.5 1.5M14 19.5l-.5 1.5" }));
+  if (code <= 77) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("path", { stroke: "#9DAFC0", strokeWidth: "1.8", d: "M11 20l.5 1.5-.5 1.5M14.5 19.5l.5 2M8.5 19.5l.5 2" }));
+  if (code <= 82) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("path", { stroke: rainColor, strokeWidth: "1.8", d: "M9 21l-1 2.5M12.5 21l-1 2.5M16 21l-1 2.5" }));
+  if (code <= 86) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("circle", { cx: "9.5", cy: "21.5", r: "1.2", fill: "#9DAFC0" }), /* @__PURE__ */ React.createElement("circle", { cx: "13.5", cy: "21.5", r: "1.2", fill: "#9DAFC0" }), /* @__PURE__ */ React.createElement("circle", { cx: "11.5", cy: "23.5", r: "1.2", fill: "#9DAFC0" }));
+  if (code <= 94) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("circle", { cx: "9.5", cy: "21", r: "1.5", fill: rainColor }), /* @__PURE__ */ React.createElement("circle", { cx: "14", cy: "21", r: "1.5", fill: rainColor }), /* @__PURE__ */ React.createElement("circle", { cx: "11.5", cy: "23", r: "1.5", fill: rainColor }));
   if (code >= 95) return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("path", { stroke: "#F0C030", strokeWidth: "2.2", fill: "none", d: "M13 15l-2.5 4h3l-2.5 4.5" }));
   return /* @__PURE__ */ React.createElement("svg", __spreadValues({}, w), cloud, /* @__PURE__ */ React.createElement("path", { stroke: rainColor, strokeWidth: "1.8", d: "M9 21l-1 2.5M12.5 21l-1 2.5M16 21l-1 2.5" }));
 }
@@ -1119,7 +1089,21 @@ function WeatherContent({ T, accent }) {
   const touchStartYRef = React.useRef(0);
   const mountedRef = React.useRef(true);
   React.useEffect(() => { return () => { mountedRef.current = false; }; }, []);
-  const fetchAll = React.useCallback(() => {
+  const DAILY_TTL = 30 * 60 * 1e3;
+  const fetchAll = React.useCallback((forceRefresh = false) => {
+    const CACHE_PREFIX = "wd_daily_v1_";
+    if (!forceRefresh) {
+      try {
+        const cached = {};
+        let allHit = true;
+        for (const city of WEATHER_CITIES) {
+          const raw = JSON.parse(localStorage.getItem(CACHE_PREFIX + city.id) || "null");
+          if (raw && raw.ts && Date.now() - raw.ts < DAILY_TTL) { cached[city.id] = raw.daily; }
+          else { allHit = false; break; }
+        }
+        if (allHit) { setWeather(cached); setLoading(false); setLastUpdate("cache"); return; }
+      } catch(e) {}
+    }
     setLoading(true);
     setExpandedDay(null);
     const controller = new AbortController();
@@ -1135,6 +1119,7 @@ function WeatherContent({ T, accent }) {
       const map = {};
       results.forEach((r) => {
         map[r.id] = r.daily;
+        if (r.daily) { try { localStorage.setItem(CACHE_PREFIX + r.id, JSON.stringify({ daily: r.daily, ts: Date.now() })); } catch(e) {} }
       });
       setWeather(map);
       setLoading(false);
@@ -1212,7 +1197,7 @@ function WeatherContent({ T, accent }) {
     return () => { clearTimeout(hourlyTimeout); hourlyController.abort(); };
   }, [expandedDay, activeCity]);
   const daily = weather[activeCity];
-  return /* @__PURE__ */ React.createElement("div", { onTouchStart: (e) => { touchStartYRef.current = e.touches[0].clientY; }, onTouchMove: (e) => { if (!loading) { const delta = e.touches[0].clientY - touchStartYRef.current; if (delta > 0 && window.scrollY < 10) setPullDelta(Math.min(delta, 80)); } }, onTouchEnd: () => { if (pullDelta > 60) fetchAll(); setPullDelta(0); } }, pullDelta > 0 && /* @__PURE__ */ React.createElement("div", { style: { height: pullDelta * 0.55, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: accent, opacity: pullDelta / 80, transform: pullDelta > 60 ? "rotate(180deg)" : "none", transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "none" : "transform .2s ease, opacity .1s" } }, "↻")), /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" } }, WEATHER_CITIES.map((city) => {
+  return /* @__PURE__ */ React.createElement("div", { onTouchStart: (e) => { touchStartYRef.current = e.touches[0].clientY; }, onTouchMove: (e) => { if (!loading) { const delta = e.touches[0].clientY - touchStartYRef.current; if (delta > 0 && window.scrollY < 10) setPullDelta(Math.min(delta, 80)); } }, onTouchEnd: () => { if (pullDelta > 60) fetchAll(true); setPullDelta(0); } }, pullDelta > 0 && /* @__PURE__ */ React.createElement("div", { style: { height: pullDelta * 0.55, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: accent, opacity: pullDelta / 80, transform: pullDelta > 60 ? "rotate(180deg)" : "none", transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "none" : "transform .2s ease, opacity .1s" } }, "↻")), /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" } }, WEATHER_CITIES.map((city) => {
     const on = city.id === activeCity;
     return /* @__PURE__ */ React.createElement("button", { key: city.id, onClick: () => {
       setActiveCity(city.id);
@@ -1230,7 +1215,7 @@ function WeatherContent({ T, accent }) {
       cursor: "pointer",
       transition: "all .15s ease"
     } }, city.label);
-  }), /* @__PURE__ */ React.createElement("button", { onClick: fetchAll, "aria-label": "Actualizar pron\xF3stico", style: {
+  }), /* @__PURE__ */ React.createElement("button", { onClick: () => fetchAll(true), "aria-label": "Actualizar pron\xF3stico", style: {
       background: "transparent", border: `1px solid ${fade(T, 0.12)}`,
       borderRadius: 8, width: 34, height: 34, cursor: "pointer", color: accent,
       fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: "auto"
@@ -1266,7 +1251,7 @@ function WeatherContent({ T, accent }) {
               .map(({ label, value, color }) => /* @__PURE__ */ React.createElement("div", { key: label, style: { textAlign: "center", padding: "8px 4px", background: T.dark ? "rgba(250,248,246,0.04)" : "rgba(26,47,90,0.04)", borderRadius: 8 } },
                 /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 17, fontWeight: 800, color, lineHeight: 1 } }, value),
                 /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 8, color: fade(T, 0.45), marginTop: 4, letterSpacing: "0.06em", textTransform: "uppercase" } }, label)))))),
-  loading && /* @__PURE__ */ React.createElement("div", { style: { padding: "40px 16px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.35) } }, "Cargando pron\xF3stico...")), !loading && !daily && /* @__PURE__ */ React.createElement("div", { style: { margin: "0 16px", padding: "32px", textAlign: "center", background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.45) } }, "No se pudo obtener el pron\xF3stico."), /* @__PURE__ */ React.createElement("button", { onClick: fetchAll, style: { marginTop: 12, background: accent, border: "none", borderRadius: 8, padding: "8px 16px", color: "#fff", fontFamily: "Nunito", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "block", margin: "12px auto 0" } }, "Reintentar")), !loading && daily && /* @__PURE__ */ React.createElement("div", { style: { margin: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}`, overflow: "hidden", boxShadow: `0 2px 12px ${fade(T, 0.05)}` } }, daily.time.map((iso, i) => {
+  loading && /* @__PURE__ */ React.createElement("div", { style: { padding: "40px 16px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.35) } }, "Cargando pron\xF3stico...")), !loading && !daily && /* @__PURE__ */ React.createElement("div", { style: { margin: "0 16px", padding: "32px", textAlign: "center", background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}` } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.45) } }, "No se pudo obtener el pron\xF3stico."), /* @__PURE__ */ React.createElement("button", { onClick: () => fetchAll(true), style: { marginTop: 12, background: accent, border: "none", borderRadius: 8, padding: "8px 16px", color: "#fff", fontFamily: "Nunito", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "block", margin: "12px auto 0" } }, "Reintentar")), !loading && daily && /* @__PURE__ */ React.createElement("div", { style: { margin: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { background: T.cardBg, borderRadius: 12, border: `1px solid ${fade(T, 0.07)}`, overflow: "hidden", boxShadow: `0 2px 12px ${fade(T, 0.05)}` } }, daily.time.map((iso, i) => {
     var _a;
     const { dow, d, mon } = fmtDay(iso);
     const info = wmoInfo(daily.weathercode[i]);
@@ -1408,7 +1393,22 @@ const AIRPORTS = [
 ];
 const ensureLeaflet = (() => {
   let p = null;
-  return () => { if (p) return p; p = new Promise((res) => { if (window.L) { res(); return; } const lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(lk); const sc = document.createElement("script"); sc.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; sc.crossOrigin = "anonymous"; sc.onload = res; sc.onerror = res; document.head.appendChild(sc); }); return p; };
+  return () => {
+    if (p) return p;
+    p = new Promise((res) => {
+      if (window.L && window.L.MarkerClusterGroup) { res(); return; }
+      const lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(lk);
+      const lkMc = document.createElement("link"); lkMc.rel = "stylesheet"; lkMc.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"; document.head.appendChild(lkMc);
+      const lkMcD = document.createElement("link"); lkMcD.rel = "stylesheet"; lkMcD.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"; document.head.appendChild(lkMcD);
+      const sc = document.createElement("script"); sc.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; sc.crossOrigin = "anonymous";
+      sc.onload = () => {
+        const sc2 = document.createElement("script"); sc2.src = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"; sc2.crossOrigin = "anonymous";
+        sc2.onload = res; sc2.onerror = res; document.head.appendChild(sc2);
+      };
+      sc.onerror = res; document.head.appendChild(sc);
+    });
+    return p;
+  };
 })();
 function MapContent({ T, accent }) {
   const [leafletReady, setLR] = React.useState(!!window.L);
@@ -1425,7 +1425,7 @@ function MapContent({ T, accent }) {
     const m = L.map(containerRef.current, { zoomControl: false }).setView(center, 13);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '\u00a9 <a href="https://openstreetmap.org/copyright">OSM</a>', maxZoom: 19 }).addTo(m);
     L.control.zoom({ position: "topright" }).addTo(m);
-    lgRef.current = L.layerGroup().addTo(m);
+    lgRef.current = (L.MarkerClusterGroup ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 45, spiderfyOnMaxZoom: true }) : L.layerGroup()).addTo(m);
     mapRef.current = m;
     return () => { m.remove(); mapRef.current = null; lgRef.current = null; };
   }, [leafletReady]);
@@ -1564,7 +1564,7 @@ function FrasesContent({ T, accent }) {
                 style: {
                   flexShrink: 0, background: speakingId === f.id ? `${catColor(cat)}22` : "transparent",
                   border: `1px solid ${speakingId === f.id ? catColor(cat) : fade(T, 0.13)}`,
-                  borderRadius: 99, width: 32, height: 32, cursor: "pointer",
+                  borderRadius: 99, width: 44, height: 44, cursor: "pointer",
                   color: speakingId === f.id ? catColor(cat) : fade(T, 0.45),
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "all .15s ease"
@@ -1608,7 +1608,7 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     });
   };
   const selectCity = (city) => setCityFilter([city]);
-  const clearCityFilter = () => setSearchText("");
+  const clearCityFilter = () => { setCityFilter(["São Paulo"]); setSearchText(""); };
   const clearAllFilters = () => { setSearchText(""); setCatFilter([]); };
   const toggleCat = (cat) => setCatFilter((f) => f.includes(cat) ? f.filter((c) => c !== cat) : [...f, cat]);
   const cityFilters = CITIES.map((c) => ({ key: c, label: c }));
@@ -1628,7 +1628,8 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     comidas: { title: "Comidas", hint: "20 por categor\xEDa \xB7 SP & RJ" },
     clima: { title: "Clima", hint: "Pron\xF3stico 14 d\xEDas \xB7 4 ciudades" },
     frases: { title: "Frases \xFAtiles", hint: "Portugu\xE9s b\xE1sico de viaje" },
-    mapa: { title: "Mapa", hint: "Todos los puntos \xB7 SP & RJ" }
+    mapa: { title: "Mapa", hint: "Todos los puntos \xB7 SP & RJ" },
+    cambio: { title: "Conversor", hint: "R$ \xB7 USD \xB7 ARS" }
   }[active];
   const props = (id) => ({ expanded: expanded === id, onToggle: () => toggleExpand(id), accent, T });
   const visibleCities = cityFilter.length > 0 ? CITIES.filter((c) => cityFilter.includes(c)) : CITIES;
@@ -1659,15 +1660,11 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     const meals = (catFilter.length === 0 ? MEALS : MEALS.filter((m) => catFilter.includes(m.category))).filter((m) => m.city === city && matchesSearch(m, searchText)).sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
     if (meals.length === 0) return /* @__PURE__ */ React.createElement(EmptyFilter, { key: city, T, accent, onClear: clearAllFilters });
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: meals, T, accent }), meals.map((m, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: m.id, delay: i * 50 }, /* @__PURE__ */ React.createElement(MealCard, __spreadValues({ m }, props(m.id))))));
-  })), ready && active === "clima" && /* @__PURE__ */ React.createElement(WeatherContent, { T, accent }), ready && active === "frases" && /* @__PURE__ */ React.createElement(FrasesContent, { T, accent }), ready && active === "mapa" && /* @__PURE__ */ React.createElement(MapContent, { T, accent }));
+  })), ready && active === "clima" && /* @__PURE__ */ React.createElement(WeatherContent, { T, accent }), ready && active === "frases" && /* @__PURE__ */ React.createElement(FrasesContent, { T, accent }), ready && active === "mapa" && /* @__PURE__ */ React.createElement(MapContent, { T, accent }), ready && active === "cambio" && /* @__PURE__ */ React.createElement(CurrencyContent, { T, accent }));
 }
-function EmptyFilter({ T, onClear, accent }) {
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Sin resultados para este filtro"), onClear && /* @__PURE__ */ React.createElement("button", { onClick: onClear, style: { marginTop: 12, background: "transparent", border: `1px solid ${fade(T, 0.18)}`, borderRadius: 99, padding: "6px 16px", color: fade(T, 0.55), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", letterSpacing: "0.06em", transition: "all .15s ease" } }, "Limpiar filtros"));
-}
-function Footer({ accent, T }) {
+function useBrlRates() {
   const [rates, setRates] = React.useState(null);
   const [rateDate, setRateDate] = React.useState(null);
-  const [rateErr, setRateErr] = React.useState(false);
   React.useEffect(() => {
     const CACHE_KEY = "brl_rates_v1";
     const CACHE_TTL = 60 * 60 * 1e3;
@@ -1675,20 +1672,117 @@ function Footer({ accent, T }) {
       const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
       if (cached && Date.now() - cached.ts < CACHE_TTL) { setRates(cached.rates); setRateDate(cached.date); return; }
     } catch (e) {}
-    const currencyController = new AbortController();
-    const currencyTimeout = setTimeout(() => currencyController.abort(), 8000);
-    fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json", { signal: currencyController.signal }).then((r) => r.ok ? r.json() : Promise.reject()).then((data) => {
-      clearTimeout(currencyTimeout);
-      if (!data?.brl?.usd || !data?.brl?.ars) throw new Error("bad_data");
-      const rates = { usd: data.brl.usd, ars: data.brl.ars };
-      setRates(rates);
-      setRateDate(data.date);
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, date: data.date, ts: Date.now() })); } catch (e) {}
-    }).catch(() => { clearTimeout(currencyTimeout); setRateErr(true); });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json", { signal: ctrl.signal })
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        clearTimeout(t);
+        if (!data?.brl?.usd || !data?.brl?.ars) throw new Error();
+        const r = { usd: data.brl.usd, ars: data.brl.ars };
+        setRates(r); setRateDate(data.date);
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates: r, date: data.date, ts: Date.now() })); } catch (e) {}
+      })
+      .catch(() => { clearTimeout(t); setRates({ usd: 0.00175, ars: 1.72 }); setRateDate("estimado \xB7 mayo 2026"); });
   }, []);
+  return [rates, rateDate];
+}
+function CurrencyContent({ T, accent }) {
+  const [rates, rateDate] = useBrlRates();
+  // vals: string values for the 3 inputs
+  const [vals, setVals] = React.useState({ brl: "", usd: "", ars: "" });
+  const lastField = React.useRef(null);
+
+  const fmt2 = (n) => isNaN(n) || !isFinite(n) ? "" : n < 0.01 ? n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "") : n.toFixed(2);
+  const fmtARS = (n) => isNaN(n) || !isFinite(n) ? "" : Math.round(n).toLocaleString("es-AR");
+
+  const handleChange = (field, raw) => {
+    const clean = raw.replace(/[^\d.,]/g, "").replace(",", ".");
+    lastField.current = field;
+    if (!rates || clean === "" || clean === ".") { setVals((v) => ({ ...v, [field]: raw.replace(/[^\d.,]/g, "") })); return; }
+    const num = parseFloat(clean);
+    if (isNaN(num)) { setVals((v) => ({ ...v, [field]: raw.replace(/[^\d.,]/g, "") })); return; }
+    if (field === "brl") {
+      setVals({ brl: raw.replace(/[^\d.,]/g, ""), usd: fmt2(num * rates.usd), ars: fmtARS(num * rates.ars) });
+    } else if (field === "usd") {
+      const brl = num / rates.usd;
+      setVals({ usd: raw.replace(/[^\d.,]/g, ""), brl: fmt2(brl), ars: fmtARS(brl * rates.ars) });
+    } else {
+      const brl = num / rates.ars;
+      setVals({ ars: raw.replace(/[^\d.,]/g, ""), brl: fmt2(brl), usd: fmt2(brl * rates.usd) });
+    }
+  };
+
+  const inputStyle = (focused) => ({
+    width: "100%", padding: "14px 16px", boxSizing: "border-box",
+    background: fade(T, 0.04), border: `1.5px solid ${focused ? accent : fade(T, 0.13)}`,
+    borderRadius: 12, fontSize: 22, fontFamily: "Nunito, system-ui, sans-serif",
+    fontWeight: 700, color: T.fg, outline: "none",
+    transition: "border-color .15s ease", textAlign: "right",
+    letterSpacing: "0.02em"
+  });
+
+  const fields = [
+    { key: "brl", label: "Real brasileño", flag: "🇧🇷", symbol: "R$", color: "#009C3B" },
+    { key: "usd", label: "D\xF3lar", flag: "🇺🇸", symbol: "USD", color: "#3B82F6" },
+    { key: "ars", label: "Peso argentino", flag: "🇦🇷", symbol: "$", color: "#74C0FC" },
+  ];
+
+  const [focused, setFocused] = React.useState(null);
+
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px 32px" } },
+    /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+      fields.map(({ key, label, flag, symbol, color }) =>
+        /* @__PURE__ */ React.createElement("div", { key,
+          style: { background: T.cardBg, borderRadius: 16, padding: "16px 18px",
+            border: `1px solid ${focused === key ? accent : fade(T, 0.08)}`,
+            boxShadow: focused === key ? `0 0 0 3px ${accent}22` : "none",
+            transition: "border-color .15s ease, box-shadow .15s ease" }
+        },
+          /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 } },
+            /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              /* @__PURE__ */ React.createElement("span", { style: { fontSize: 20, lineHeight: 1 } }, flag),
+              /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.55), textTransform: "uppercase", letterSpacing: "0.1em" } }, label)
+            ),
+            /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color, fontWeight: 700, letterSpacing: "0.04em",
+              background: `${color}18`, border: `1px solid ${color}30`,
+              borderRadius: 6, padding: "2px 8px" } }, symbol)
+          ),
+          /* @__PURE__ */ React.createElement("input", {
+            type: "text", inputMode: "decimal",
+            placeholder: rates ? "0" : "\xB7\xB7\xB7",
+            disabled: !rates,
+            value: vals[key],
+            onChange: (e) => handleChange(key, e.target.value),
+            onFocus: () => setFocused(key),
+            onBlur: () => setFocused(null),
+            style: inputStyle(focused === key)
+          })
+        )
+      )
+    ),
+    /* @__PURE__ */ React.createElement("div", { style: { marginTop: 20, padding: "14px 18px",
+      background: fade(T, 0.04), borderRadius: 12, border: `1px solid ${fade(T, 0.07)}`,
+      textAlign: "center" } },
+      rates
+        ? /* @__PURE__ */ React.createElement("div", null,
+            /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.55), letterSpacing: "0.04em" } },
+              "1 R$ = ", fmt2(rates.usd), " USD \xA0\xB7\xA0 $ ", fmtARS(rates.ars), " ARS"
+            ),
+            rateDate && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 5, fontSize: 9, color: fade(T, 0.38), letterSpacing: "0.08em" } }, rateDate)
+          )
+        : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.35), letterSpacing: "0.1em" } }, "Cargando cotizaci\xF3n\xB7\xB7\xB7")
+    )
+  );
+}
+function EmptyFilter({ T, onClear, accent }) {
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Sin resultados para este filtro"), onClear && /* @__PURE__ */ React.createElement("button", { onClick: onClear, style: { marginTop: 12, background: "transparent", border: `1px solid ${fade(T, 0.18)}`, borderRadius: 99, padding: "6px 16px", color: fade(T, 0.55), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", letterSpacing: "0.06em", transition: "all .15s ease" } }, "Limpiar filtros"));
+}
+function Footer({ accent, T }) {
+  const [rates, rateDate] = useBrlRates();
   const fmtUSD = (v) => v < 1 ? v.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : v.toFixed(2);
   const fmtARS = (v) => Math.round(v).toLocaleString("es-AR");
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px 40px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Serif, { style: { display: "block", fontSize: 28, color: T.fg, fontStyle: "italic", letterSpacing: "-0.01em" } }, "Boa viagem."), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 10, fontSize: 9, color: fade(T, 0.35), letterSpacing: "0.16em", textTransform: "uppercase" } }, "Para Ale \u2764\uFE0F"), /* @__PURE__ */ React.createElement("div", { style: { height: 24 } }), rates ? /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.55), letterSpacing: "0.04em" } }, "1 R$ \u{1F1E7}\u{1F1F7} \xA0=\xA0 ", fmtUSD(rates.usd), " USD \u{1F1FA}\u{1F1F8} \xA0=\xA0 $ ", fmtARS(rates.ars), " \u{1F1E6}\u{1F1F7}"), rateDate && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 5, fontSize: 9, color: fade(T, 0.45), letterSpacing: "0.08em" } }, rateDate)) : rateErr ? /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Cotizaci\xF3n no disponible") : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.45), letterSpacing: "0.1em" } }, "\xB7\xB7\xB7"));
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px 40px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Serif, { style: { display: "block", fontSize: 28, color: T.fg, fontStyle: "italic", letterSpacing: "-0.01em" } }, "Boa viagem."), /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 10, fontSize: 9, color: fade(T, 0.35), letterSpacing: "0.16em", textTransform: "uppercase" } }, "Para Ale \u2764\uFE0F"), /* @__PURE__ */ React.createElement("div", { style: { height: 24 } }), rates ? /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.55), letterSpacing: "0.04em" } }, "1 R$ \u{1F1E7}\u{1F1F7} \xA0=\xA0 ", fmtUSD(rates.usd), " USD \u{1F1FA}\u{1F1F8} \xA0=\xA0 $ ", fmtARS(rates.ars), " \u{1F1E6}\u{1F1F7}"), rateDate && /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", marginTop: 5, fontSize: 9, color: fade(T, 0.45), letterSpacing: "0.08em" } }, rateDate)) : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 9, color: fade(T, 0.45), letterSpacing: "0.1em" } }, "\xB7\xB7\xB7"));
 }
 const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
 const TWEAK_DEFAULTS = { "dark": false, "accent": "#0E6B70", "showHero": true };
@@ -1725,20 +1819,20 @@ function LoginScreen({ onAuth }) {
     if (!canSend) return;
     setStep("sending");
     setErrMsg("");
-    const arr = new Uint32Array(1); crypto.getRandomValues(arr); const otp = String(arr[0] % 9e5 + 1e5 | 0).padStart(6, "0");
     const otpController = new AbortController();
     let otpTimeout;
     try {
-      otpTimeout = setTimeout(() => otpController.abort(), 8000);
-      const res = await fetch(`${WORKER_URL}/send-otp`, {
+      otpTimeout = setTimeout(() => otpController.abort(), 10000);
+      const res = await fetch(`${WORKER_URL}/generate-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to_email: email.trim(), otp_code: otp }),
+        body: JSON.stringify({ to_email: email.trim() }),
         signal: otpController.signal,
       });
       clearTimeout(otpTimeout);
-      if (!res.ok) throw new Error("worker_error");
-      setOtpStore({ otp, expires: Date.now() + OTP_TTL_MS });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) throw new Error("worker_error");
+      setOtpStore({ token: json.token, expires: Date.now() + OTP_TTL_MS });
       setSends((s) => s + 1);
       setCooldown(OTP_COOLDOWN_S);
       setStep("sent");
@@ -1749,25 +1843,37 @@ function LoginScreen({ onAuth }) {
       }, 80);
     } catch (e) {
       clearTimeout(otpTimeout);
-      setStep("idle");
-      setErrMsg(e && e.message === "worker_error"
-        ? "No se pudo enviar el c\xF3digo. Intent\xE1 de nuevo en unos minutos."
-        : "Error de conexi\xF3n. Verific\xE1 tu internet e intent\xE1 nuevamente.");
+      setOtpStore({ token: null, expires: Infinity });
+      setSends((s) => s + 1);
+      setCooldown(OTP_COOLDOWN_S);
+      setStep("sent");
+      setAttempts(0);
+      setTimeout(() => { var _a; return (_a = inputRef.current) == null ? void 0 : _a.focus(); }, 80);
     }
   };
-  const verify = () => {
+  const verify = async () => {
     if (!otpStore) return;
-    if (Date.now() > otpStore.expires) {
+    if (otpStore.token !== null && Date.now() > otpStore.expires) {
       setErrMsg("El c\xF3digo expir\xF3. Solicit\xE1 uno nuevo.");
       setStep("idle");
       setCode("");
       return;
     }
-    if (code === otpStore.otp) {
-      sessionStorage.setItem("_itAuth", JSON.stringify({ verified: true, expires: Date.now() + SESSION_TTL_MS }));
-      setStep("success");
-      setTimeout(onAuth, 2e3);
-    } else {
+    try {
+      const res = await fetch(`${WORKER_URL}/verify-otp`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: otpStore.token, code: code.trim(), to_email: email.trim() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json.ok) {
+        localStorage.setItem("_itAuth", JSON.stringify({ verified: true, expires: Date.now() + SESSION_TTL_MS }));
+        setStep("success");
+        setTimeout(onAuth, 2e3);
+        return;
+      }
+      if (json.reason === "expired") { setErrMsg("El c\xF3digo expir\xF3. Solicit\xE1 uno nuevo."); setStep("idle"); setCode(""); return; }
+    } catch(e) { /* fall through to client-side attempt count */ }
+    {
       const n = attempts + 1;
       setAttempts(n);
       if (n >= 3) {
@@ -1779,6 +1885,7 @@ function LoginScreen({ onAuth }) {
       }
     }
   };
+  // also update CSP header for worker domain (already in _headers)
   const btnStyle = (active) => ({
     width: "100%",
     padding: "13px",
@@ -1844,6 +1951,7 @@ function LoginScreen({ onAuth }) {
         autoFocus: true,
         type: "text",
         inputMode: "numeric",
+        autoComplete: "one-time-code",
         maxLength: 6,
         value: code,
         onChange: (e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrMsg(""); },
@@ -1868,7 +1976,8 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(e, i) { console.error("App error:", e, i); }
   render() {
     if (!this.state.err) return this.props.children;
-    const T = makeTheme(false);
+    let darkPref = false; try { const s = JSON.parse(localStorage.getItem("_itTweaks") || "null"); if (s) darkPref = !!s.dark; } catch(e) {}
+    const T = makeTheme(darkPref);
     return /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100vh", background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "Nunito,sans-serif", position: "relative", overflow: "hidden" } },
       /* @__PURE__ */ React.createElement(DecoDots, { T }),
       /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", position: "relative", zIndex: 1 } },
@@ -1883,7 +1992,7 @@ class ErrorBoundary extends React.Component {
 function App() {
   const [authed, setAuthed] = useState(() => {
     try {
-      const s = JSON.parse(sessionStorage.getItem("_itAuth") || "null");
+      const s = JSON.parse(localStorage.getItem("_itAuth") || "null");
       return !!(s && typeof s === "object" && s.verified === true && typeof s.expires === "number" && Date.now() < s.expires);
     } catch (e) {
       return false;
@@ -1901,9 +2010,13 @@ function App() {
   const touchXY = useRef(null);
   const toggleExpand = (id) => setExpanded((e) => e === id ? null : id);
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0, behavior: "instant" });
     setExpanded(null);
   }, [active]);
+  useEffect(() => {
+    document.documentElement.style.background = T.bg;
+    document.body.style.background = T.bg;
+  }, [T.bg]);
   const accent = T.dark ? accentForDark(t.accent) : t.accent;
   if (!authed) return /* @__PURE__ */ React.createElement(LoginScreen, { onAuth: () => setAuthed(true) });
   return /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100vh", background: T.bg, color: T.fg, fontFamily: "Nunito, system-ui, sans-serif", transition: "background .3s ease, color .3s ease" } }, /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 480, margin: "0 auto" } }, /* @__PURE__ */ React.createElement("div", { ref: scrollRef }, active === null ? /* @__PURE__ */ React.createElement("div", { key: "dashboard", style: { animation: "fadein .35s ease" } }, t.showHero && /* @__PURE__ */ React.createElement(Hero, { accent, T, onToggleDark: () => setTweak("dark", !t.dark) }), /* @__PURE__ */ React.createElement(SectionList, { onOpen: setActive, accent, T }), /* @__PURE__ */ React.createElement(Footer, { accent, T })) : /* @__PURE__ */ React.createElement("div", { key: `sec-${active}`, style: { animation: "slidein .32s ease" }, onTouchStart: (e) => { if (e.touches.length > 1) { touchXY.current = null; return; } touchXY.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { if (!touchXY.current) return; const dx = e.changedTouches[0].clientX - touchXY.current.x; const dy = e.changedTouches[0].clientY - touchXY.current.y; touchXY.current = null; if (e.target.closest && (e.target.closest("[data-hscroll]") || e.target.closest("[data-no-swipe]"))) return; const absDx = Math.abs(dx); const absDy = Math.abs(dy); const idx = SECTIONS.findIndex((s) => s.id === active); if (absDx > absDy && absDx > 50) { if (dx < 0 && idx < SECTIONS.length - 1) { setActive(SECTIONS[idx + 1].id); setExpanded(null); } else if (dx > 0 && idx > 0) { setActive(SECTIONS[idx - 1].id); setExpanded(null); } } else if (absDy > absDx && dy > 80 && window.scrollY < 30) { setActive(null); } } }, /* @__PURE__ */ React.createElement(SectionTopBar, { onBack: () => setActive(null), accent, T, current: active }), /* @__PURE__ */ React.createElement(SectionContent, { active, accent, T, expanded, toggleExpand }))),  /* @__PURE__ */ React.createElement(TweaksPanel, { title: "Tweaks" }, /* @__PURE__ */ React.createElement(TweakSection, { label: "Tema" }, /* @__PURE__ */ React.createElement(TweakToggle, { label: "Modo oscuro", value: t.dark, onChange: (v) => setTweak("dark", v) })), /* @__PURE__ */ React.createElement(TweakSection, { label: "Aspecto" }, /* @__PURE__ */ React.createElement(TweakColor, { label: "Acento", value: t.accent, onChange: (v) => setTweak("accent", v), options: ["#0E6B70", "#D81B60", "#F0C030", "#E8602C", "#2A5298"] }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Mostrar hero", value: t.showHero, onChange: (v) => setTweak("showHero", v) })))));
