@@ -1785,6 +1785,50 @@ function _zoneDensity(bin, W, H, FW, FH) {
   return vec;
 }
 
+// Image enhancement: contrast stretch + unsharp mask written back to canvas.
+// Greatly improves Otsu binarisation on real camera frames (slight blur,
+// uneven lighting, mixed backgrounds).
+function _enhanceCanvas(canvas) {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const W = canvas.width, H = canvas.height;
+  const id = ctx.getImageData(0, 0, W, H);
+  const d = id.data;
+  const N = W * H;
+
+  // 1. Luminance per pixel
+  const lum = new Float32Array(N);
+  for (let i = 0; i < N; i++)
+    lum[i] = d[i*4]*0.299 + d[i*4+1]*0.587 + d[i*4+2]*0.114;
+
+  // 2. Contrast stretch: clip top/bottom 1% to ignore extreme outliers
+  const sorted = lum.slice().sort();
+  const lo = sorted[Math.floor(N * 0.01)];
+  const hi = sorted[Math.floor(N * 0.99)];
+  const range = hi - lo || 1;
+
+  // 3. Sharpen (unsharp mask, k=1.4) + stretch, write as grey
+  const out = id.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const c  = lum[y*W+x];
+      const t  = y > 0   ? lum[(y-1)*W+x] : c;
+      const b  = y < H-1 ? lum[(y+1)*W+x] : c;
+      const l  = x > 0   ? lum[y*W+x-1]   : c;
+      const r  = x < W-1 ? lum[y*W+x+1]   : c;
+      // unsharp: original + 1.4*(original - blur)
+      const blur = (t + b + l + r + c) / 5;
+      let v = c + 1.4 * (c - blur);
+      // stretch to [0,255]
+      v = Math.round((v - lo) / range * 255);
+      v = v < 0 ? 0 : v > 255 ? 255 : v;
+      const i4 = (y*W+x)*4;
+      out[i4] = out[i4+1] = out[i4+2] = v;
+      out[i4+3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
 function _cosSim(a, b) {
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
@@ -1793,6 +1837,7 @@ function _cosSim(a, b) {
 
 // Main entry: canvas → number string (e.g. "87534,89") or null
 function ocrPriceCanvas(canvas) {
+  _enhanceCanvas(canvas); // contrast stretch + sharpen in-place
   const ref = _buildOCRRef();
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const W = canvas.width, H = canvas.height;
@@ -1838,7 +1883,7 @@ function ocrPriceCanvas(canvas) {
   // 5. Segment characters via vertical projection
   const colS = new Int32Array(W);
   for (let y = ty0; y < ty1; y++) for (let x = 0; x < W; x++) colS[x] += fg[y*W+x];
-  const colT = Math.max(1, tH * 0.05);
+  const colT = Math.max(1, tH * 0.025); // lower threshold catches thin/light fonts
   const segs = [];
   let inS = false, sX = 0;
   for (let x = 0; x < W; x++) {
@@ -1906,7 +1951,8 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
   const canvasRef = React.useRef(null);
   const streamRef = React.useRef(null);
   const alive = React.useRef(true);
-  const scanLockRef = React.useRef(false); // prevent overlapping requests
+  const scanLockRef = React.useRef(false);
+  const lastPriceRef = React.useRef(null); // for consecutive-match confirmation // prevent overlapping requests
 
   React.useEffect(() => {
     alive.current = true;
@@ -1936,7 +1982,7 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
       while (!cancelled && alive.current) {
         await doScan();
         // Wait 2s between scans (regardless of how long the request took)
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 800));
       }
     };
     loop();
@@ -1996,7 +2042,18 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
         } catch (_) { /* ignore */ }
       }
 
-      if (alive.current && price) setSel(price);
+      // Only commit a reading after 2 consecutive scans return the same value
+      // (rounds to cents to tolerate minor float drift). This kills single-frame
+      // mis-reads while still updating the display quickly on a stable shot.
+      if (alive.current && price) {
+        const rounded = Math.round(price * 100) / 100;
+        if (lastPriceRef.current === rounded) {
+          setSel(rounded);
+        }
+        lastPriceRef.current = rounded;
+      } else {
+        lastPriceRef.current = null;
+      }
     } catch (e) { /* ignore per-frame errors, keep scanning */ }
 
     if (alive.current) setScanning(false);
