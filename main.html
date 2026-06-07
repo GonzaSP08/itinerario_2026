@@ -1768,13 +1768,10 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
     setScanning(true);
 
     try {
-      // Capture the center 78%×28% strip where the viewfinder is
-      const vw = v.videoWidth, vh = v.videoHeight;
-      const cw = Math.round(vw * 0.78), ch = Math.round(vh * 0.28);
-      const cx = Math.round((vw - cw) / 2), cy = Math.round((vh - ch) / 2);
-      c.width = cw; c.height = ch;
-      c.getContext('2d').drawImage(v, cx, cy, cw, ch, 0, 0, cw, ch);
-      const dataUrl = c.toDataURL('image/jpeg', 0.8);
+      // Send the full frame — let the model find the most prominent price anywhere
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      const dataUrl = c.toDataURL('image/jpeg', 0.82);
 
       const res = await fetch(WORKER_URL + '/ocr-price', {
         method: 'POST',
@@ -1838,42 +1835,54 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
 
       // Live viewfinder
       phase === 'live' && React.createElement(React.Fragment, null,
-        // Targeting rectangle
+        // Blur overlay: 4 panels surrounding the clear targeting zone
+        // Top strip
+        React.createElement('div', { style: { position: 'absolute', top: 0, left: 0, right: 0, height: '36%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', pointerEvents: 'none' } }),
+        // Bottom strip
+        React.createElement('div', { style: { position: 'absolute', bottom: 0, left: 0, right: 0, top: '64%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', pointerEvents: 'none' } }),
+        // Left strip
+        React.createElement('div', { style: { position: 'absolute', top: '36%', bottom: '36%', left: 0, width: '11%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', pointerEvents: 'none' } }),
+        // Right strip
+        React.createElement('div', { style: { position: 'absolute', top: '36%', bottom: '36%', right: 0, width: '11%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', pointerEvents: 'none' } }),
+
+        // Targeting rectangle corners + scanline
         React.createElement('div', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' } },
           React.createElement('div', { style: { position: 'relative', width: '78%', height: '28%' } },
             corner('tl'), corner('tr'), corner('bl'), corner('br'),
-            React.createElement('div', { style: { position: 'absolute', left: 0, right: 0, height: 1.5, background: `linear-gradient(to right, transparent, ${accent}cc, transparent)`, animation: 'scanline 2.4s ease-in-out infinite', opacity: scanning ? 0.25 : 1, transition: 'opacity 0.3s' } })
+            React.createElement('div', { style: { position: 'absolute', left: 0, right: 0, height: 1.5, background: `linear-gradient(to right, transparent, ${accent}cc, transparent)`, animation: 'scanline 2.4s ease-in-out infinite', opacity: scanning ? 0.2 : 1, transition: 'opacity 0.3s' } })
           )
         ),
 
-        // Status pill
-        React.createElement('div', { style: { position: 'absolute', top: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' } },
-          React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.52)', borderRadius: 99, padding: '5px 14px', border: `1px solid ${scanning ? accent + '90' : 'rgba(255,255,255,0.12)'}`, transition: 'border-color 0.3s' } },
+        // Status pill (top)
+        React.createElement('div', { style: { position: 'absolute', top: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' } },
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', borderRadius: 99, padding: '5px 14px', border: `1px solid ${scanning ? accent + '90' : 'rgba(255,255,255,0.15)'}`, transition: 'border-color 0.3s' } },
             React.createElement('div', { style: { width: 6, height: 6, borderRadius: '50%', background: scanning ? accent : 'rgba(255,255,255,0.3)', animation: scanning ? 'pulse 0.9s ease-in-out infinite' : 'none', transition: 'background 0.3s' } }),
-            React.createElement(Mono, { style: { fontSize: 10, color: scanning ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', transition: 'color 0.3s' } }, scanning ? 'Analizando\xB7\xB7\xB7' : 'Apunt\xE1 al precio')
+            React.createElement(Mono, { style: { fontSize: 10, color: scanning ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)', letterSpacing: '0.08em', transition: 'color 0.3s' } }, scanning ? 'Analizando\xB7\xB7\xB7' : 'Encuadr\xE1 el precio')
           )
         ),
 
-        // Result panel
-        conv
-          ? React.createElement('div', { style: panel },
-              React.createElement(Mono, { style: { display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 } }, '🇧🇷 Precio detectado'),
-              React.createElement(Serif, { style: { display: 'block', fontSize: 38, color: '#fff', letterSpacing: '-0.02em', marginBottom: 12 } }, `R$ ${fmtBRL(sel)}`),
-              React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 } },
-                React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px' } },
-                  React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 } }, '🇦🇷 Pesos'),
-                  React.createElement(Serif, { style: { fontSize: 24, color: '#fff' } }, `$ ${fmtARS(conv.ars)}`)
-                ),
-                React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px' } },
-                  React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 } }, '🇺🇸 D\xF3lares'),
-                  React.createElement(Serif, { style: { fontSize: 24, color: '#fff' } }, `$ ${fmt2(conv.usd)}`)
-                )
-              ),
-              React.createElement('button', { onClick: () => onResult(sel), style: { width: '100%', padding: '13px', background: accent, border: 'none', borderRadius: 10, color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, 'Usar este precio en el conversor')
+        // Compact result bar at bottom (always visible when price detected)
+        conv && React.createElement('div', { style: { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(8,8,18,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: '14px 18px 18px' } },
+          // Price row
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 } },
+            React.createElement('div', null,
+              React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 2 } }, '🇧🇷 Precio detectado'),
+              React.createElement(Serif, { style: { fontSize: 28, color: '#fff', letterSpacing: '-0.01em', lineHeight: 1.1 } }, `R$ ${fmtBRL(sel)}`)
+            ),
+            React.createElement('button', { onClick: () => onResult(sel), style: { background: accent, border: 'none', borderRadius: 10, padding: '10px 16px', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 } }, 'Usar →')
+          ),
+          // Conversions row
+          React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement('div', { style: { flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px' } },
+              React.createElement(Mono, { style: { display: 'block', fontSize: 8, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 } }, '🇦🇷 Pesos'),
+              React.createElement(Serif, { style: { fontSize: 18, color: '#fff' } }, `$ ${fmtARS(conv.ars)}`)
+            ),
+            React.createElement('div', { style: { flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px' } },
+              React.createElement(Mono, { style: { display: 'block', fontSize: 8, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 } }, '🇺🇸 D\xF3lares'),
+              React.createElement(Serif, { style: { fontSize: 18, color: '#fff' } }, `$ ${fmt2(conv.usd)}`)
             )
-          : React.createElement('div', { style: { position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' } },
-              React.createElement(Mono, { style: { fontSize: 11, color: 'rgba(255,255,255,0.32)', letterSpacing: '0.06em', background: 'rgba(0,0,0,0.4)', padding: '5px 14px', borderRadius: 99 } }, 'Buscando precios en el visor\xB7\xB7\xB7')
-            )
+          )
+        )
       ),
 
       // Error / denied
@@ -1887,13 +1896,13 @@ function IOSLiveScanner({ T, accent, rates, onResult, onClose }) {
       )
     ),
 
-    // Manual capture button
-    phase === 'live' && React.createElement('div', { style: { padding: '14px 24px calc(28px + env(safe-area-inset-bottom))', flexShrink: 0, display: 'flex', justifyContent: 'center' } },
+    // Manual capture button (only shown when no price detected yet)
+    phase === 'live' && React.createElement('div', { style: { padding: '12px 24px calc(24px + env(safe-area-inset-bottom))', flexShrink: 0, display: 'flex', justifyContent: 'center', background: conv ? 'transparent' : 'rgba(0,0,0,0.2)' } },
       React.createElement('button', {
         onClick: doScan, disabled: scanning, 'aria-label': 'Capturar ahora',
-        style: { width: 68, height: 68, borderRadius: '50%', border: `3px solid ${scanning ? 'rgba(255,255,255,0.22)' : accent}`, background: 'transparent', cursor: scanning ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.3s', flexShrink: 0 }
+        style: { width: 62, height: 62, borderRadius: '50%', border: `3px solid ${scanning ? 'rgba(255,255,255,0.2)' : accent}`, background: 'transparent', cursor: scanning ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.3s', flexShrink: 0 }
       },
-        React.createElement('div', { style: { width: 52, height: 52, borderRadius: '50%', background: scanning ? 'rgba(255,255,255,0.22)' : '#fff', transition: 'background 0.3s' } })
+        React.createElement('div', { style: { width: 48, height: 48, borderRadius: '50%', background: scanning ? 'rgba(255,255,255,0.2)' : '#fff', transition: 'background 0.3s' } })
       )
     )
   );

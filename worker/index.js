@@ -172,13 +172,29 @@ export default {
       try {
         const result = await env.AI.run("@cf/llava-hf/llava-1.5-7b-hf", {
           image: [...bytes],
-          prompt: "This image shows a price tag in Brazil. What is the price in Brazilian Reais (R$)? Reply with ONLY the numeric value, for example: 29.90 or 149.00 or 1299.00. If you cannot see a clear price, reply with: none",
-          max_tokens: 16,
+          prompt: "Look at this image carefully. Find the largest or most prominent number visible — it is a price in Brazilian Reais. Numbers use comma as decimal separator (e.g. 1234,98 means 1234.98). Reply with ONLY the digits and decimal point, like: 1234.98 or 29.90 or 149.00. Do not include R$ or any other text. If no number is visible, reply: none",
+          max_tokens: 24,
         });
         const text = (result?.description || result?.response || "").trim();
-        const m = text.match(/[\d]+(?:[.,][\d]+)?/);
-        const price = m ? parseFloat(m[0].replace(",", ".")) : null;
-        return cors(JSON.stringify({ ok: true, price: price && isFinite(price) ? price : null, raw: text }), 200);
+        // Parse Brazilian number: may have period as thousands separator and comma as decimal
+        // e.g. "1.234,98" → 1234.98, "1234,98" → 1234.98, "149.00" → 149.00
+        const cleaned = text.replace(/[^\d.,]/g, "");
+        let price = null;
+        if (cleaned) {
+          const lastComma = cleaned.lastIndexOf(",");
+          const lastDot = cleaned.lastIndexOf(".");
+          let normalized;
+          if (lastComma > lastDot) {
+            // comma is decimal separator: remove dots (thousands), replace comma with dot
+            normalized = cleaned.replace(/\./g, "").replace(",", ".");
+          } else {
+            // dot is decimal separator: remove commas (thousands)
+            normalized = cleaned.replace(/,/g, "");
+          }
+          const n = parseFloat(normalized);
+          if (isFinite(n) && n > 0) price = n;
+        }
+        return cors(JSON.stringify({ ok: true, price, raw: text }), 200);
       } catch (e) {
         return cors(JSON.stringify({ ok: false, reason: String(e) }), 500);
       }
