@@ -1718,15 +1718,20 @@ function extractPrices(text) {
 let _ocradP = null;
 function ensureOCRAD() {
   if (_ocradP) return _ocradP;
-  _ocradP = new Promise((res, rej) => {
-    if (window.OCRAD) { res(); return; }
-    const s = document.createElement('script');
-    // jsdelivr resolves the package main automatically (no subpath needed)
-    s.src = 'https://cdn.jsdelivr.net/npm/ocrad.js';
-    s.onload = () => { window.OCRAD ? res() : rej(new Error('ocrad')); };
-    s.onerror = () => { _ocradP = null; rej(new Error('ocrad_load')); };
-    document.head.appendChild(s);
-  });
+  _ocradP = (async () => {
+    if (window.OCRAD) return;
+    // Fetch as text + eval: avoids CDN script-tag issues with the "ocrad.js"
+    // package name (the .js suffix confuses CDN path resolution) and also
+    // works without needing blob: in script-src.
+    // eval is permitted by the existing 'unsafe-inline' in script-src.
+    const text = await fetch('https://unpkg.com/ocrad.js').then(r => {
+      if (!r.ok) throw new Error('ocrad_fetch_' + r.status);
+      return r.text();
+    });
+    // eslint-disable-next-line no-eval
+    eval(text); // UMD wrapper sets window.OCRAD in browser context
+    if (!window.OCRAD) throw new Error('ocrad_init');
+  })();
   return _ocradP;
 }
 
