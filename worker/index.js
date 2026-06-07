@@ -170,13 +170,32 @@ export default {
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
 
       try {
-        // Llama 3.2 Vision is significantly more accurate than LLaVA for digit reading
-        const result = await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
-          image: [...bytes],
-          prompt: "Transcribe EXACTLY the number shown in this image, digit by digit. Do not guess or approximate — copy exactly what you see. Reply with ONLY the digits and the separator character (comma or period). Nothing else.",
-          max_tokens: 32,
-        });
-        const text = (result?.response || result?.description || "").trim();
+        // Try Llama 3.2 Vision (messages format) first — better accuracy than LLaVA.
+        // Fall back to LLaVA 1.5 if Llama 3.2 fails.
+        let text = "";
+        try {
+          const r = await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
+                  { type: "text", text: "What number is shown in this image? Copy it exactly, digit by digit. Reply with ONLY the digits and the decimal/thousands separators. No words, no R$, just the number." }
+                ]
+              }
+            ],
+            max_tokens: 32,
+          });
+          text = (r?.response || r?.description || "").trim();
+        } catch (_) {
+          // Fallback: LLaVA 1.5
+          const r2 = await env.AI.run("@cf/llava-hf/llava-1.5-7b-hf", {
+            image: [...bytes],
+            prompt: "What is the exact number shown in this image? Reply with ONLY the digits and decimal separator, nothing else.",
+            max_tokens: 24,
+          });
+          text = (r2?.description || r2?.response || "").trim();
+        }
         // Parse Brazilian number: may have period as thousands separator and comma as decimal
         // e.g. "1.234,98" → 1234.98, "1234,98" → 1234.98, "149.00" → 149.00
         const cleaned = text.replace(/[^\d.,]/g, "");
