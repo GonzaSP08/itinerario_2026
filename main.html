@@ -34,6 +34,7 @@
   @keyframes slidein  { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
   @keyframes expandin { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
   @keyframes spin     { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes scanline { 0%, 100% { top: 12%; opacity: 0.5; } 50% { top: 88%; opacity: 1; } }
   :focus-visible { outline: 2px solid #0E6B70; outline-offset: 2px; border-radius: 4px; }
   button:focus:not(:focus-visible) { outline: none; }
   @media (prefers-reduced-motion: reduce) {
@@ -1662,6 +1663,225 @@ function SectionContent({ active, accent, expanded, toggleExpand, T }) {
     return /* @__PURE__ */ React.createElement("div", { key: city }, /* @__PURE__ */ React.createElement(CityGroupHeader, { city, acts: meals, T, accent }), meals.map((m, i) => /* @__PURE__ */ React.createElement(FadeIn, { key: m.id, delay: i * 50 }, /* @__PURE__ */ React.createElement(MealCard, __spreadValues({ m }, props(m.id))))));
   })), ready && active === "clima" && /* @__PURE__ */ React.createElement(WeatherContent, { T, accent }), ready && active === "frases" && /* @__PURE__ */ React.createElement(FrasesContent, { T, accent }), ready && active === "mapa" && /* @__PURE__ */ React.createElement(MapContent, { T, accent }), ready && active === "cambio" && /* @__PURE__ */ React.createElement(CurrencyContent, { T, accent }));
 }
+// ── Tesseract OCR ─────────────────────────────────────────────────────────
+let _tessP = null;
+function ensureTessWorker() {
+  if (_tessP) return _tessP;
+  _tessP = (async () => {
+    if (!window.Tesseract) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = res;
+        s.onerror = () => { _tessP = null; rej(new Error('tess_load')); };
+        document.head.appendChild(s);
+      });
+    }
+    const w = await window.Tesseract.createWorker('eng', 1, {
+      workerPath: 'https://unpkg.com/tesseract.js@5/dist/worker.min.js',
+      langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-data@4.0.0',
+      corePath: 'https://unpkg.com/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+      logger: (m) => { if (m.status === 'recognizing text') window.__tessProgress?.(Math.round(m.progress * 100)); }
+    });
+    await w.setParameters({ tessedit_char_whitelist: 'R$0123456789,. ' });
+    return w;
+  })();
+  return _tessP;
+}
+function parseBRLNum(s) {
+  const n = parseFloat(String(s).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.'));
+  return isFinite(n) && n > 0 ? n : null;
+}
+function extractPrices(text) {
+  const found = new Set();
+  for (const m of text.matchAll(/R\$\s*([\d.,]+)/gi)) { const n = parseBRLNum(m[1]); if (n) found.add(n); }
+  for (const m of text.matchAll(/\b\d{1,3}(?:\.\d{3})+,\d{2}\b/g)) { const n = parseBRLNum(m[0]); if (n) found.add(n); }
+  for (const m of text.matchAll(/\b\d{1,5},\d{2}\b/g)) { const n = parseBRLNum(m[0]); if (n && n <= 99999) found.add(n); }
+  return [...found].sort((a, b) => a - b);
+}
+
+// ── CameraScanner ──────────────────────────────────────────────────────────
+function CameraScanner({ T, accent, rates, onResult, onClose }) {
+  const canLive = !!(typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia);
+  const [phase, setPhase] = React.useState('init'); // init|ready|processing|result|nofound|error|denied
+  const [scanPct, setScanPct] = React.useState(0);
+  const [prices, setPrices] = React.useState([]);
+  const [sel, setSel] = React.useState(null);
+  const [liveAvail, setLiveAvail] = React.useState(false);
+  const videoRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
+  const streamRef = React.useRef(null);
+  const fileRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    window.__tessProgress = (p) => { if (alive) setScanPct(p); };
+    (async () => {
+      try {
+        await ensureTessWorker();
+        if (!alive) return;
+        if (canLive) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } } });
+            if (!alive) { stream.getTracks().forEach(t => t.stop()); return; }
+            streamRef.current = stream;
+            if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
+            if (alive) setLiveAvail(true);
+          } catch (e) {
+            if (alive && (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError')) { setPhase('denied'); return; }
+          }
+        }
+        if (alive) setPhase('ready');
+      } catch (e) { if (alive) setPhase('error'); }
+    })();
+    return () => {
+      alive = false;
+      window.__tessProgress = null;
+      streamRef.current?.getTracks().forEach(t => t.stop());
+    };
+  }, []);
+
+  const runOCR = async (source) => {
+    setPhase('processing'); setScanPct(0);
+    try {
+      const worker = await ensureTessWorker();
+      window.__tessProgress = setScanPct;
+      const { data } = await worker.recognize(source);
+      window.__tessProgress = null;
+      const found = extractPrices(data.text);
+      setPrices(found); setSel(found[0] ?? null);
+      setPhase(found.length ? 'result' : 'nofound');
+    } catch { setPhase('error'); }
+  };
+
+  const captureFrame = () => {
+    const v = videoRef.current, c = canvasRef.current;
+    if (!v || !c) return;
+    c.width = v.videoWidth || 1280; c.height = v.videoHeight || 720;
+    c.getContext('2d').drawImage(v, 0, 0);
+    runOCR(c);
+  };
+
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (f) runOCR(URL.createObjectURL(f));
+    e.target.value = '';
+  };
+
+  const scanAgain = () => { setScanPct(0); setPrices([]); setSel(null); setPhase('ready'); };
+
+  const fmt2 = (n) => (n < 0.01 ? n.toFixed(4) : n.toFixed(2));
+  const fmtARS = (n) => Math.round(n).toLocaleString('es-AR');
+  const fmtBRL = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const conv = sel && rates ? { usd: sel * rates.usd, ars: sel * rates.ars } : null;
+
+  const panel = { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(8,8,18,0.93)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', padding: '22px 20px 32px', borderTopLeftRadius: 24, borderTopRightRadius: 24 };
+  const secBtn = (mt) => ({ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: mt || 10 });
+  const spinner = React.createElement('div', { style: { width: 40, height: 40, border: '3px solid rgba(255,255,255,0.12)', borderTopColor: accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 } });
+
+  // Corner bracket element
+  const corner = (pos) => {
+    const [v, h] = pos.split('');
+    const s = { position: 'absolute', width: 20, height: 20, borderColor: accent, borderStyle: 'solid', borderWidth: 0,
+      [v === 't' ? 'top' : 'bottom']: 0, [h === 'l' ? 'left' : 'right']: 0,
+      [v === 't' ? 'borderTopWidth' : 'borderBottomWidth']: 2.5,
+      [h === 'l' ? 'borderLeftWidth' : 'borderRightWidth']: 2.5,
+      borderRadius: v === 't' && h === 'l' ? '6px 0 0 0' : v === 't' ? '0 6px 0 0' : h === 'l' ? '0 0 0 6px' : '0 0 6px 0'
+    };
+    return React.createElement('div', { key: pos, style: s });
+  };
+
+  return React.createElement('div', { style: { position: 'fixed', inset: 0, zIndex: 200, background: '#000', display: 'flex', flexDirection: 'column' } },
+    // Header
+    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', flexShrink: 0, background: 'rgba(0,0,0,0.35)' } },
+      React.createElement('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+        React.createElement('span', { style: { fontSize: 16 } }, '💸'),
+        React.createElement(Mono, { style: { fontSize: 12, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.1em', textTransform: 'uppercase' } }, 'Esc\xE1ner de precios')
+      ),
+      React.createElement('button', { onClick: onClose, style: { background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: '#fff', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, '✕')
+    ),
+
+    // Main area
+    React.createElement('div', { style: { flex: 1, position: 'relative', overflow: 'hidden' } },
+      React.createElement('video', { ref: videoRef, autoPlay: true, playsInline: true, muted: true, style: { width: '100%', height: '100%', objectFit: 'cover' } }),
+      React.createElement('canvas', { ref: canvasRef, style: { display: 'none' } }),
+
+      // Viewfinder frame (live only, ready phase)
+      liveAvail && phase === 'ready' && React.createElement('div', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' } },
+        React.createElement('div', { style: { position: 'relative', width: '78%', height: '26%' } },
+          corner('tl'), corner('tr'), corner('bl'), corner('br'),
+          React.createElement('div', { style: { position: 'absolute', left: 0, right: 0, height: 1.5, background: `linear-gradient(to right, transparent, ${accent}cc, transparent)`, animation: 'scanline 2.4s ease-in-out infinite' } })
+        )
+      ),
+
+      // Hint text
+      liveAvail && phase === 'ready' && React.createElement('div', { style: { position: 'absolute', top: '72%', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' } },
+        React.createElement(Mono, { style: { fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', background: 'rgba(0,0,0,0.35)', padding: '4px 12px', borderRadius: 99 } }, 'Apunt\xE1 al precio y captur\xE1')
+      ),
+
+      // Init
+      phase === 'init' && React.createElement('div', { style: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 } },
+        spinner,
+        React.createElement(Mono, { style: { fontSize: 12, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em' } }, 'Cargando esc\xE1ner\xB7\xB7\xB7')
+      ),
+
+      // Processing
+      phase === 'processing' && React.createElement('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 } },
+        spinner,
+        React.createElement(Mono, { style: { fontSize: 13, color: 'rgba(255,255,255,0.7)' } }, `Leyendo precio\xB7\xB7\xB7 ${scanPct}%`),
+        React.createElement('div', { style: { width: 180, height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2 } },
+          React.createElement('div', { style: { height: '100%', width: `${scanPct}%`, background: accent, borderRadius: 2, transition: 'width 0.25s ease' } })
+        )
+      ),
+
+      // Result
+      phase === 'result' && conv && React.createElement('div', { style: panel },
+        React.createElement(Mono, { style: { display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 } }, '🇧🇷 Precio detectado'),
+        prices.length > 1 && React.createElement('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 } },
+          prices.map(p => React.createElement('button', { key: p, onClick: () => setSel(p), style: { background: p === sel ? accent : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '5px 12px', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, `R$ ${fmtBRL(p)}`))),
+        React.createElement(Serif, { style: { display: 'block', fontSize: 40, color: '#fff', letterSpacing: '-0.02em', marginBottom: 16 } }, `R$ ${fmtBRL(sel)}`),
+        React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 } },
+          React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)' } },
+            React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 } }, '🇦🇷 Pesos'),
+            React.createElement(Serif, { style: { fontSize: 24, color: '#fff' } }, `$ ${fmtARS(conv.ars)}`)
+          ),
+          React.createElement('div', { style: { background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(255,255,255,0.08)' } },
+            React.createElement(Mono, { style: { display: 'block', fontSize: 9, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 } }, '🇺🇸 D\xF3lares'),
+            React.createElement(Serif, { style: { fontSize: 24, color: '#fff' } }, `$ ${fmt2(conv.usd)}`)
+          )
+        ),
+        React.createElement('button', { onClick: () => { onResult(sel); }, style: { width: '100%', padding: '13px', background: accent, border: 'none', borderRadius: 10, color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, 'Usar este precio en el conversor'),
+        React.createElement('button', { onClick: scanAgain, style: secBtn(8) }, 'Escanear otro precio')
+      ),
+
+      // No found
+      phase === 'nofound' && React.createElement('div', { style: { ...panel, textAlign: 'center' } },
+        React.createElement(Mono, { style: { display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 6 } }, 'No se detectaron precios.'),
+        React.createElement(Mono, { style: { display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5, marginBottom: 18 } }, 'Prob\xE1 con m\xE1s luz o m\xE1s cerca del precio.'),
+        React.createElement('button', { onClick: scanAgain, style: { background: accent, border: 'none', borderRadius: 10, padding: '12px 28px', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } }, 'Intentar de nuevo')
+      ),
+
+      // Error / denied
+      (phase === 'error' || phase === 'denied') && React.createElement('div', { style: { ...panel, textAlign: 'center' } },
+        React.createElement(Mono, { style: { display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 18 } }, phase === 'denied' ? 'Sin permiso de c\xE1mara.\nPod\xE9s usar una foto de la galer\xEDa.' : 'No se pudo cargar el esc\xE1ner.'),
+        phase === 'denied' && React.createElement('button', { onClick: () => fileRef.current?.click(), style: { background: accent, border: 'none', borderRadius: 10, padding: '12px 24px', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 8 } }, 'Elegir foto de galer\xEDa'),
+        React.createElement('button', { onClick: onClose, style: secBtn() }, 'Cerrar')
+      )
+    ),
+
+    // Bottom controls
+    phase === 'ready' && React.createElement('div', { style: { padding: '18px 24px 28px', flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20 } },
+      liveAvail
+        ? React.createElement('button', { onClick: captureFrame, 'aria-label': 'Capturar', style: { width: 72, height: 72, borderRadius: '50%', border: `3px solid ${accent}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+            React.createElement('div', { style: { width: 56, height: 56, borderRadius: '50%', background: '#fff' } })
+          )
+        : React.createElement('button', { onClick: () => fileRef.current?.click(), style: { padding: '16px 32px', borderRadius: 14, background: accent, border: 'none', color: '#fff', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: 15, cursor: 'pointer', letterSpacing: '0.02em' } }, '📷 Tomar foto')
+    ),
+
+    React.createElement('input', { ref: fileRef, type: 'file', accept: 'image/*', capture: 'environment', style: { display: 'none' }, onChange: handleFile })
+  );
+}
+
 function useBrlRates() {
   const [rates, setRates] = React.useState(null);
   const [rateDate, setRateDate] = React.useState(null);
@@ -1689,8 +1909,8 @@ function useBrlRates() {
 }
 function CurrencyContent({ T, accent }) {
   const [rates, rateDate] = useBrlRates();
-  // vals: string values for the 3 inputs
   const [vals, setVals] = React.useState({ brl: "", usd: "", ars: "" });
+  const [showScanner, setShowScanner] = React.useState(false);
   const lastField = React.useRef(null);
 
   const fmt2 = (n) => isNaN(n) || !isFinite(n) ? "" : n < 0.01 ? n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "") : n.toFixed(2);
@@ -1730,7 +1950,23 @@ function CurrencyContent({ T, accent }) {
 
   const [focused, setFocused] = React.useState(null);
 
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px 32px" } },
+  const onScanResult = React.useCallback((priceBRL) => {
+    if (!rates || priceBRL == null) return;
+    setVals({
+      brl: priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      usd: fmt2(priceBRL * rates.usd),
+      ars: fmtARS(priceBRL * rates.ars)
+    });
+    setShowScanner(false);
+  }, [rates]);
+
+  return /* @__PURE__ */ React.createElement(React.Fragment, null,
+    showScanner && /* @__PURE__ */ React.createElement(CameraScanner, { T, accent, rates, onResult: onScanResult, onClose: () => setShowScanner(false) }),
+    /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px 32px" } },
+    /* @__PURE__ */ React.createElement("button", { onClick: () => setShowScanner(true), style: { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "13px 16px", marginBottom: 16, background: `${accent}15`, border: `1.5px dashed ${accent}55`, borderRadius: 14, cursor: "pointer", color: accent, fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.03em", transition: "background .15s ease, border-color .15s ease" }, onMouseEnter: (e) => { e.currentTarget.style.background = `${accent}25`; e.currentTarget.style.borderColor = accent; }, onMouseLeave: (e) => { e.currentTarget.style.background = `${accent}15`; e.currentTarget.style.borderColor = `${accent}55`; } },
+      /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, "📸"),
+      /* @__PURE__ */ React.createElement("span", null, "Escanear precio con la c\xE1mara")
+    ),
     /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
       fields.map(({ key, label, flag, symbol, color }) =>
         /* @__PURE__ */ React.createElement("div", { key,
@@ -1773,7 +2009,7 @@ function CurrencyContent({ T, accent }) {
           )
         : /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.35), letterSpacing: "0.1em" } }, "Cargando cotizaci\xF3n\xB7\xB7\xB7")
     )
-  );
+  ));
 }
 function EmptyFilter({ T, onClear, accent }) {
   return /* @__PURE__ */ React.createElement("div", { style: { padding: "32px 22px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 11, color: fade(T, 0.35), letterSpacing: "0.08em" } }, "Sin resultados para este filtro"), onClear && /* @__PURE__ */ React.createElement("button", { onClick: onClear, style: { marginTop: 12, background: "transparent", border: `1px solid ${fade(T, 0.18)}`, borderRadius: 99, padding: "6px 16px", color: fade(T, 0.55), fontFamily: "Nunito, system-ui, sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", letterSpacing: "0.06em", transition: "all .15s ease" } }, "Limpiar filtros"));
