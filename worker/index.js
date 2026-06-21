@@ -220,6 +220,28 @@ export default {
       }
     }
 
+    // GET /brl-rate — Cocos ARS/BRL rate from api.comparapix.ar
+    if (req.method === "GET" && url.pathname === "/brl-rate") {
+      try {
+        const res = await fetch("https://api.comparapix.ar/quotes");
+        if (!res.ok) throw new Error("upstream");
+        const data = await res.json();
+        const cocosQuotes = data?.cocos?.quotes;
+        if (!cocosQuotes) throw new Error("no_cocos");
+        const brlArs = cocosQuotes.find((q) => q.symbol === "BRLARS");
+        const brlUsd = cocosQuotes.find((q) => q.symbol === "BRLUSD");
+        const ars = brlArs?.buy;
+        const usd = brlUsd?.buy;
+        if (!ars || !isFinite(ars) || ars < 10) throw new Error("invalid");
+        return new Response(JSON.stringify({ ok: true, ars, usd: usd || null }), {
+          status: 200,
+          headers: { ...corsHeaders(), "Cache-Control": "public, max-age=300" },
+        });
+      } catch (e) {
+        return cors(JSON.stringify({ ok: false, reason: String(e) }), 502);
+      }
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
