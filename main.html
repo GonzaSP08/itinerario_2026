@@ -2509,7 +2509,7 @@ function CurrencyContent({ T, accent }) {
   const lastField = React.useRef(null);
 
   const fmt2 = (n) => isNaN(n) || !isFinite(n) ? "" : n < 0.01 ? n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "") : n.toFixed(2);
-  const fmtARS = (n) => isNaN(n) || !isFinite(n) ? "" : Math.round(n).toLocaleString("es-AR");
+  const fmtARS = (n) => isNaN(n) || !isFinite(n) ? "" : n.toLocaleString("es-AR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
   const handleChange = (field, raw) => {
     const clean = raw.replace(/[^\d.,]/g, "").replace(",", ".");
