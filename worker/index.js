@@ -3,6 +3,27 @@ const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
 const FLIGHT_RE = /^[A-Z0-9]{2}\d{1,4}$/i;
 const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
+// In-memory rate limiter for /verify-otp (resets on worker restart, but covers most abuse)
+const otpAttempts = new Map();
+const OTP_MAX_ATTEMPTS = 10;
+const OTP_WINDOW_MS = 15 * 60 * 1000;
+
+function getRateKey(req) {
+  return req.headers.get("CF-Connecting-IP") || req.headers.get("X-Forwarded-For") || "unknown";
+}
+
+function checkRateLimit(key) {
+  const now = Date.now();
+  const entry = otpAttempts.get(key);
+  if (!entry || now > entry.resetAt) {
+    otpAttempts.set(key, { count: 1, resetAt: now + OTP_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > OTP_MAX_ATTEMPTS) return true;
+  return false;
+}
+
 function corsHeaders() {
   return {
     "Content-Type": "application/json",
@@ -14,6 +35,37 @@ function corsHeaders() {
 
 function cors(body, status) {
   return new Response(body, { status, headers: corsHeaders() });
+}
+
+// HMAC-SHA256 token helpers (replaces base64 encoding)
+async function signToken(data, secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
+async function makeToken(otp, expires, email, secret) {
+  const payload = `${otp}:${expires}:${email}`;
+  const sig = await signToken(payload, secret);
+  return btoa(payload).replace(/=/g, "") + "." + sig;
+}
+
+async function verifyToken(token, code, email, secret) {
+  const dot = token.lastIndexOf(".");
+  if (dot === -1) return { ok: false, reason: "invalid" };
+  const payloadB64 = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const padLen = (4 - payloadB64.length % 4) % 4;
+  let payload;
+  try { payload = atob(payloadB64 + "=".repeat(padLen)); } catch { return { ok: false, reason: "invalid" }; }
+  const expected = await signToken(payload, secret);
+  if (expected !== sig) return { ok: false, reason: "invalid" };
+  const [storedOtp, expires, storedEmail] = payload.split(":");
+  if (storedEmail !== email) return { ok: false, reason: "invalid" };
+  if (Date.now() > parseInt(expires)) return { ok: false, reason: "expired" };
+  if (storedOtp !== String(code).trim()) return { ok: false, reason: "wrong" };
+  return { ok: true };
 }
 
 export default {
@@ -31,6 +83,7 @@ export default {
 
     // POST /generate-otp  — generates OTP server-side and sends it
     if (req.method === "POST" && url.pathname === "/generate-otp") {
+      if (!env.OTP_SECRET) return cors(JSON.stringify({ ok: false }), 503);
       if (!env.EMAILJS_SVC_ID || !env.EMAILJS_TPL_ID || !env.EMAILJS_PUB_KEY || !env.EMAILJS_PRIV_KEY) {
         return cors(JSON.stringify({ ok: false }), 503);
       }
@@ -41,13 +94,9 @@ export default {
       const normalizedEmail = String(to_email).trim().toLowerCase();
       if (!ALLOWED_EMAILS.includes(normalizedEmail)) return cors(JSON.stringify({ ok: false }), 403);
       if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(normalizedEmail)) return cors(JSON.stringify({ ok: false }), 400);
-      // Generate 6-digit OTP server-side
       const otp_code = String(Math.floor(100000 + crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
-      // Store hash in KV (or env-level cache; use a simple approach: store otp+expiry encoded in the response, signed with a secret)
-      // Since we don't have KV, sign the OTP so the client can verify server-generated code without exposing it
       const expires = Date.now() + 10 * 60 * 1000;
-      const secret = env.OTP_SECRET || "brasil2026secret";
-      const token = btoa(`${otp_code}:${expires}:${normalizedEmail}:${secret}`).replace(/=/g, "");
+      const token = await makeToken(otp_code, expires, normalizedEmail, env.OTP_SECRET);
       try {
         const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
           method: "POST",
@@ -63,6 +112,9 @@ export default {
 
     // POST /verify-otp
     if (req.method === "POST" && url.pathname === "/verify-otp") {
+      const rateKey = getRateKey(req);
+      if (checkRateLimit(rateKey)) return cors(JSON.stringify({ ok: false, reason: "rate_limited" }), 429);
+      if (!env.OTP_SECRET) return cors(JSON.stringify({ ok: false }), 503);
       let body;
       try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400); }
       const { token, code, to_email } = body;
@@ -74,17 +126,8 @@ export default {
         return cors(JSON.stringify({ ok: true }), 200);
       }
       if (!token) return cors(JSON.stringify({ ok: false, reason: "invalid" }), 200);
-      try {
-        const secret = env.OTP_SECRET || "brasil2026secret";
-        const padLen = (4 - token.length % 4) % 4;
-        const decoded = atob(token + "=".repeat(padLen));
-        const [storedOtp, expires, storedEmail, storedSecret] = decoded.split(":");
-        if (storedSecret !== secret) return cors(JSON.stringify({ ok: false, reason: "invalid" }), 200);
-        if (storedEmail !== normalizedEmail) return cors(JSON.stringify({ ok: false, reason: "invalid" }), 200);
-        if (Date.now() > parseInt(expires)) return cors(JSON.stringify({ ok: false, reason: "expired" }), 200);
-        if (storedOtp !== String(code).trim()) return cors(JSON.stringify({ ok: false, reason: "wrong" }), 200);
-        return cors(JSON.stringify({ ok: true }), 200);
-      } catch { return cors(JSON.stringify({ ok: false, reason: "invalid" }), 200); }
+      const result = await verifyToken(token, code, normalizedEmail, env.OTP_SECRET);
+      return cors(JSON.stringify(result), 200);
     }
 
     // POST /send-otp  (legacy — kept for backward compat)
