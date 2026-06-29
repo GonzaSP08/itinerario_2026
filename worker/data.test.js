@@ -272,3 +272,20 @@ describe("MEALS data integrity", () => {
     }
   });
 });
+
+// ── A11Y-01: SectionList uses <ul> not div[role=list] ────────────────────
+
+describe("A11Y-01 semantic list markup", () => {
+  it("SectionList renders ul, not div with role=list", () => {
+    expect(html).toMatch(/createElement\("ul"/);
+  });
+
+  it("no div with role=list exists in JS", () => {
+    // Ensure the old anti-pattern was removed
+    expect(html).not.toMatch(/role:\s*["']list["']/);
+  });
+
+  it("no button with role=listitem exists in JS", () => {
+    expect(html).not.toMatch(/role:\s*["']listitem["']/);
+  });
+});

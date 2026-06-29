@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   esc,
   normalizeUrl,
@@ -14,6 +14,7 @@ import {
   _parseBRL,
   _cosSim,
   getDaysUntil,
+  filterAndSort,
 } from "./frontend-utils.js";
 
 // ── esc ──────────────────────────────────────────────────────────────────────
@@ -307,5 +308,88 @@ describe("getDaysUntil", () => {
   it("handles year boundary", () => {
     const ref = new Date(2025, 11, 31); // Dec 31 2025
     expect(getDaysUntil("01.01.2026", ref)).toBe(1);
+  });
+});
+
+// ── filterAndSort ─────────────────────────────────────────────────────────
+
+const SAMPLE_DATA = [
+  { id: "a1", city: "São Paulo", category: "Restaurante", name: "Alpha", rating: "4.6", hours: "12:00-23:00" },
+  { id: "a2", city: "São Paulo", category: "Bar",         name: "Beta",  rating: "4.8", hours: "17:00-02:00" },
+  { id: "a3", city: "São Paulo", category: "Café",        name: "Gamma", rating: "4.5", hours: "08:00-18:00" },
+  { id: "a4", city: "Rio de Janeiro", category: "Restaurante", name: "Delta", rating: "4.7", hours: "12:00-22:00" },
+  { id: "a5", city: "São Paulo", category: "Restaurante", name: "zeta",  rating: "4.9", hours: "18:00-23:00" },
+];
+
+describe("filterAndSort", () => {
+  it("filters by city", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours);
+    expect(result.every((x) => x.city === "São Paulo")).toBe(true);
+    expect(result.length).toBe(4);
+  });
+
+  it("returns empty array when city has no matches", () => {
+    const result = filterAndSort(SAMPLE_DATA, "Curitiba", [], "", false, (x) => x.hours);
+    expect(result).toHaveLength(0);
+  });
+
+  it("filters by catFilter when provided", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", ["Bar"], "", false, (x) => x.hours);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("a2");
+  });
+
+  it("allows multiple categories in catFilter", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", ["Bar", "Café"], "", false, (x) => x.hours);
+    expect(result).toHaveLength(2);
+    expect(result.map((x) => x.category).sort()).toEqual(["Bar", "Café"].sort());
+  });
+
+  it("ignores catFilter when empty array", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours);
+    expect(result).toHaveLength(4);
+  });
+
+  it("filters by searchText (name match)", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "alpha", false, (x) => x.hours);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("a1");
+  });
+
+  it("returns all items when searchText is empty", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours);
+    expect(result).toHaveLength(4);
+  });
+
+  it("sorts by rating descending", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours);
+    const ratings = result.map((x) => parseFloat(x.rating));
+    for (let i = 1; i < ratings.length; i++) {
+      expect(ratings[i]).toBeLessThanOrEqual(ratings[i - 1]);
+    }
+  });
+
+  it("highest-rated item is first", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours);
+    expect(result[0].id).toBe("a5"); // rating 4.9
+  });
+
+  it("openNow=false skips the isOpenNowFn check", () => {
+    const alwaysOpen = vi.fn(() => true);
+    filterAndSort(SAMPLE_DATA, "São Paulo", [], "", false, (x) => x.hours, alwaysOpen);
+    expect(alwaysOpen).not.toHaveBeenCalled();
+  });
+
+  it("openNow=true passes getHours result to isOpenNowFn", () => {
+    const isOpen = vi.fn((h) => h === "12:00-23:00");
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", true, (x) => x.hours, isOpen);
+    expect(isOpen).toHaveBeenCalled();
+    expect(result.every((x) => x.hours === "12:00-23:00")).toBe(true);
+  });
+
+  it("catFilter + searchText compose correctly", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", ["Restaurante"], "alpha", false, (x) => x.hours);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("a1");
   });
 });
