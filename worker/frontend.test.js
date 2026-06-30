@@ -392,4 +392,133 @@ describe("filterAndSort", () => {
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("a1");
   });
+
+  it("handles empty data array", () => {
+    expect(filterAndSort([], "São Paulo", [], "", false, (x) => x.hours)).toEqual([]);
+  });
+
+  it("treats missing rating as 0 (sorts to the end)", () => {
+    const data = [
+      { id: "b1", city: "SP", name: "Sin rating", hours: "" },
+      { id: "b2", city: "SP", name: "Con rating", rating: "4.5", hours: "" },
+    ];
+    const result = filterAndSort(data, "SP", [], "", false, (x) => x.hours);
+    expect(result[0].id).toBe("b2");
+    expect(result[1].id).toBe("b1");
+  });
+
+  it("treats null rating as 0", () => {
+    const data = [
+      { id: "c1", city: "SP", name: "A", rating: null,    hours: "" },
+      { id: "c2", city: "SP", name: "B", rating: "4.5",   hours: "" },
+      { id: "c3", city: "SP", name: "C", rating: undefined, hours: "" },
+    ];
+    const result = filterAndSort(data, "SP", [], "", false, (x) => x.hours);
+    expect(result[0].id).toBe("c2");
+    expect(result.slice(1).map((x) => x.rating == null || x.rating === null).every(Boolean)).toBe(true);
+  });
+
+  it("searches by area field", () => {
+    const data = [
+      { id: "d1", city: "SP", name: "A", area: "Liberdade", hours: "" },
+      { id: "d2", city: "SP", name: "B", area: "Pinheiros", hours: "" },
+    ];
+    expect(filterAndSort(data, "SP", [], "liber", false, (x) => x.hours)).toHaveLength(1);
+    expect(filterAndSort(data, "SP", [], "liber", false, (x) => x.hours)[0].id).toBe("d1");
+  });
+
+  it("searches by note field", () => {
+    const data = [
+      { id: "e1", city: "SP", name: "A", note: "Michelin estrella", hours: "" },
+      { id: "e2", city: "SP", name: "B", note: "Local",             hours: "" },
+    ];
+    expect(filterAndSort(data, "SP", [], "michelin", false, (x) => x.hours)[0].id).toBe("e1");
+  });
+
+  it("searches by kind field", () => {
+    const data = [
+      { id: "f1", city: "SP", name: "A", kind: "Bares de vinos", hours: "" },
+      { id: "f2", city: "SP", name: "B", kind: "Cervecería",     hours: "" },
+    ];
+    expect(filterAndSort(data, "SP", [], "vino", false, (x) => x.hours)[0].id).toBe("f1");
+  });
+
+  it("search is case-insensitive", () => {
+    const data = [{ id: "g1", city: "SP", name: "Padaria São João", hours: "" }];
+    expect(filterAndSort(data, "SP", [], "SÃO", false, (x) => x.hours)).toHaveLength(1);
+    expect(filterAndSort(data, "SP", [], "são", false, (x) => x.hours)).toHaveLength(1);
+    expect(filterAndSort(data, "SP", [], "SAO", false, (x) => x.hours)).toHaveLength(0); // no accent match
+  });
+
+  it("openNow=true with all items failing isOpenNowFn returns empty", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", true, (x) => x.hours, () => false);
+    expect(result).toHaveLength(0);
+  });
+
+  it("openNow=true + catFilter: both filters apply together", () => {
+    const result = filterAndSort(
+      SAMPLE_DATA, "São Paulo", ["Bar"], "", true,
+      (x) => x.hours,
+      (h) => h === "17:00-02:00"
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("a2");
+  });
+
+  it("openNow=true: getHours returning null/undefined treated as closed", () => {
+    const data = [{ id: "h1", city: "SP", name: "X", hours: undefined }];
+    const result = filterAndSort(data, "SP", [], "", true, (x) => x.hours, (h) => h != null);
+    expect(result).toHaveLength(0);
+  });
+
+  it("catFilter with non-existent category returns empty", () => {
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", ["Heladería"], "", false, (x) => x.hours);
+    expect(result).toHaveLength(0);
+  });
+
+  it("does not mutate the input array", () => {
+    const data = [
+      { id: "i1", city: "SP", name: "A", rating: "4.5", hours: "" },
+      { id: "i2", city: "SP", name: "B", rating: "4.8", hours: "" },
+    ];
+    const copy = [...data];
+    filterAndSort(data, "SP", [], "", false, (x) => x.hours);
+    expect(data).toEqual(copy);
+  });
+});
+
+// ── filterAndSort + momentToHours integration ─────────────────────────────
+// Mirrors how the comidas section in main.html calls filterAndSort
+
+describe("filterAndSort + momentToHours (comidas integration)", () => {
+  const MEALS = [
+    { id: "m1", city: "SP", name: "Resto A", category: "Restaurante", rating: "4.7", moment: "Cena" },
+    { id: "m2", city: "SP", name: "Cafe B",  category: "Café",        rating: "4.5", moment: "Mañana" },
+    { id: "m3", city: "SP", name: "Bar C",   category: "Bar",         rating: "4.6", moment: "Noche" },
+  ];
+
+  const getHours = (m) => momentToHours(m.moment) || m.hours;
+
+  it("returns all meals for city when openNow=false", () => {
+    expect(filterAndSort(MEALS, "SP", [], "", false, getHours)).toHaveLength(3);
+  });
+
+  it("openNow filters by moment-derived hours", () => {
+    const isCena = (h) => h === "Todos los días 19:00-23:30";
+    const result = filterAndSort(MEALS, "SP", [], "", true, getHours, isCena);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("m1");
+  });
+
+  it("catFilter + moment-derived hours compose", () => {
+    const isEvening = (h) => ["Todos los días 19:00-23:30", "Todos los días 20:00-02:00"].includes(h);
+    const result = filterAndSort(MEALS, "SP", ["Bar"], "", true, getHours, isEvening);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("m3");
+  });
+
+  it("results are sorted by rating descending", () => {
+    const result = filterAndSort(MEALS, "SP", [], "", false, getHours);
+    expect(result.map((m) => m.id)).toEqual(["m1", "m3", "m2"]);
+  });
 });
