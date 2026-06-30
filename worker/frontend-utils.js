@@ -37,9 +37,8 @@ export const accentForDark = (hex) => {
 };
 
 // ── Search matching ──────────────────────────────────────────────────────────
-export function matchesSearch(item, text) {
-  if (!text.trim()) return true;
-  const q = text.toLowerCase();
+export function matchesSearch(item, text, q = text.toLowerCase()) {
+  if (!q.trim()) return true;
   return (
     (item.name || "").toLowerCase().includes(q) ||
     (item.note || "").toLowerCase().includes(q) ||
@@ -143,12 +142,17 @@ export function _cosSim(a, b) {
 // ── filterAndSort — city-grouped list filtering ──────────────────────────
 // isOpenNowFn is injected so callers can mock it in tests.
 // In main.html the global isOpenNow is used directly as a closure.
-export function filterAndSort(data, city, catFilter, searchText, openNow, getHours, isOpenNowFn = () => false) {
+// Default () => true: omitting isOpenNowFn with openNow=true includes everything.
+export function filterAndSort(data, city, catFilter, searchText, openNow, getHours, isOpenNowFn = () => true) {
+  const q = searchText ? searchText.toLowerCase() : "";
   return data
-    .filter((x) => x.city === city)
-    .filter((x) => !catFilter.length || catFilter.includes(x.category))
-    .filter((x) => matchesSearch(x, searchText))
-    .filter((x) => !openNow || isOpenNowFn(getHours(x)))
+    .filter((x) => {
+      if (x.city !== city) return false;
+      if (catFilter.length && !catFilter.includes(x.category)) return false;
+      if (q.trim() && !matchesSearch(x, searchText, q)) return false;
+      if (openNow && !isOpenNowFn(getHours(x))) return false;
+      return true;
+    })
     .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
 }
 // ── Days until a "dd.mm.yyyy" date ──────────────────────────────────────────

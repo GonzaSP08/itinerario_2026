@@ -415,7 +415,7 @@ describe("filterAndSort", () => {
     ];
     const result = filterAndSort(data, "SP", [], "", false, (x) => x.hours);
     expect(result[0].id).toBe("c2");
-    expect(result.slice(1).map((x) => x.rating == null || x.rating === null).every(Boolean)).toBe(true);
+    expect(result.slice(1).map((x) => x.rating == null).every(Boolean)).toBe(true);
   });
 
   it("searches by area field", () => {
@@ -453,6 +453,12 @@ describe("filterAndSort", () => {
   it("openNow=true with all items failing isOpenNowFn returns empty", () => {
     const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", true, (x) => x.hours, () => false);
     expect(result).toHaveLength(0);
+  });
+
+  it("openNow=true with no isOpenNowFn includes all city items (safe default)", () => {
+    const cityItems = SAMPLE_DATA.filter((x) => x.city === "São Paulo");
+    const result = filterAndSort(SAMPLE_DATA, "São Paulo", [], "", true, (x) => x.hours);
+    expect(result).toHaveLength(cityItems.length);
   });
 
   it("openNow=true + catFilter: both filters apply together", () => {
