@@ -48,8 +48,8 @@
 <body>
 <div id="root"></div>
 
-<script src="./vendor/react.min.js"></script>
-<script src="./vendor/react-dom.min.js"></script>
+<script src="./vendor/react.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"></script>
+<script src="./vendor/react-dom.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"></script>
 
 
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -683,7 +683,7 @@ function Hero({ accent, T, onToggleDark }) {
   )), /* @__PURE__ */ React.createElement(Serif, { style: { marginTop: 8, fontSize: 92, lineHeight: 0.95, color: T.fg, letterSpacing: "-0.025em", display: "block", fontStyle: "italic", position: "relative", zIndex: 1 } }, TRIP.city), /* @__PURE__ */ React.createElement(AlinesBar, { style: { marginTop: 16, position: "relative", zIndex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18, display: "flex", alignItems: "baseline", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color: T.fg } }, TRIP.dateStart, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), margin: "0 8px" } }, "\u2192"), TRIP.dateEnd, /* @__PURE__ */ React.createElement("span", { style: { color: fade(T, 0.6), marginLeft: 8 } }, "\xB7 ", TRIP.year)), /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 99, background: `${accent}1a`, border: `1px solid ${accent}42` } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: accent, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 } }, daysLeft > 0 ? `T-${daysLeft} d\xEDas` : (1 - daysLeft) <= TRIP.days ? `D\xEDa ${1 - daysLeft} / ${TRIP.days}` : "\xA1Termin\xF3!"))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 22, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", borderTop: `1px solid ${fade(T, 0.1)}`, borderBottom: `1px solid ${fade(T, 0.1)}` } }, [["D\xEDas", TRIP.days], ["Viajeros", TRIP.travelers]].map(([k, v], i) => /* @__PURE__ */ React.createElement("div", { key: k, style: { padding: "12px 0", textAlign: i === 0 ? "left" : "right" } }, /* @__PURE__ */ React.createElement(Mono, { style: { display: "block", fontSize: 9, color: fade(T, 0.6), textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 } }, k), /* @__PURE__ */ React.createElement(Serif, { style: { fontSize: 22, color: T.fg } }, v)))));
 }
 function SectionList({ onOpen, accent, T }) {
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 0" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, "Secciones"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.1em" } }, SECTIONS.length, " \xEDtems")), /* @__PURE__ */ React.createElement("ul", { style: { listStyle: "none", padding: 0, margin: 0, borderTop: `1px solid ${fade(T, 0.1)}` } }, SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement("li", { key: s.id, style: { display: "block" } }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 0" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.12em", textTransform: "uppercase" } }, "Secciones"), /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 10, color: fade(T, 0.6), letterSpacing: "0.1em" } }, SECTIONS.length, " \xEDtems")), /* @__PURE__ */ React.createElement("ul", { role: "list", style: { listStyle: "none", padding: 0, margin: 0, borderTop: `1px solid ${fade(T, 0.1)}` } }, SECTIONS.map((s, i) => /* @__PURE__ */ React.createElement("li", { key: s.id, style: { display: "block" } }, /* @__PURE__ */ React.createElement(
     "button",
     {
       "aria-label": `${s.label} — ${s.meta}`,
@@ -1625,7 +1625,7 @@ function MapContent({ T, accent }) {
         } }, f.label);
       })
     ),
-    /* @__PURE__ */ React.createElement("div", { style: { padding: "0 16px 10px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setOpenNow(o => !o), style: { padding: "5px 12px", borderRadius: 99, fontFamily: "Nunito,sans-serif", fontSize: 10, fontWeight: openNow ? 700 : 500, cursor: "pointer", border: `1px solid ${openNow ? "#10B981" : fade(T, 0.14)}`, background: openNow ? "rgba(16,185,129,0.12)" : "transparent", color: openNow ? "#10B981" : fade(T, 0.72), transition: "all .15s ease" } }, openNow ? "● Abierto ahora" : "○ Abierto ahora")),
+    /* @__PURE__ */ React.createElement(OpenNowBtn, { openNow, onToggle: () => setOpenNow(o => !o), T }),
     !leafletReady
       ? /* @__PURE__ */ React.createElement("div", { style: { margin: "0 16px", height: "54vh", borderRadius: 16, background: T.cardBg, border: `1px solid ${fade(T, 0.07)}`, display: "flex", alignItems: "center", justifyContent: "center" } },
           /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.50) } }, "Cargando mapa\u2026"))
@@ -1712,8 +1712,9 @@ function filterAndSort(data, city, catFilter, searchText, openNow, getHours) {
     .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
 }
 // ── Shared "Abierto ahora" toggle button ─────────────────────────────────
+const OPEN_NOW_COLOR = "#10B981";
 function OpenNowBtn({ openNow, onToggle, T }) {
-  return /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 8px" } }, /* @__PURE__ */ React.createElement("button", { onClick: onToggle, style: { padding: "5px 12px", borderRadius: 99, fontFamily: "Nunito,sans-serif", fontSize: 10, fontWeight: openNow ? 700 : 500, cursor: "pointer", border: `1px solid ${openNow ? "#10B981" : fade(T, 0.14)}`, background: openNow ? "rgba(16,185,129,0.12)" : "transparent", color: openNow ? "#10B981" : fade(T, 0.72), transition: "all .15s ease" } }, openNow ? "● Abierto ahora" : "○ Abierto ahora"));
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "0 22px 8px" } }, /* @__PURE__ */ React.createElement("button", { onClick: onToggle, style: { padding: "5px 12px", borderRadius: 99, fontFamily: "Nunito,sans-serif", fontSize: 10, fontWeight: openNow ? 700 : 500, cursor: "pointer", border: `1px solid ${openNow ? OPEN_NOW_COLOR : fade(T, 0.14)}`, background: openNow ? "rgba(16,185,129,0.12)" : "transparent", color: openNow ? OPEN_NOW_COLOR : fade(T, 0.72), transition: "all .15s ease" } }, openNow ? "● Abierto ahora" : "○ Abierto ahora"));
 }
 function SectionContent({ active, accent, expanded, toggleExpand, T, rates, rateDate, rateSource }) {
   const [cityFilter, setCityFilter] = useState(["S\xE3o Paulo"]);

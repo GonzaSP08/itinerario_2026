@@ -274,7 +274,10 @@ describe("MEALS data integrity", () => {
 });
 
 // ── JS syntax validity ────────────────────────────────────────────────────
-// This test catches SyntaxError ('Unexpected token )') before it hits the browser.
+// Catches SyntaxError (e.g. paren imbalance) before it hits the browser.
+// Note: new Function(js) makes top-level `var` declarations function-local
+// instead of global — safe here because all application code lives in a
+// single self-contained <script> tag with no cross-tag var references.
 
 describe("main.html JS syntax", () => {
   it("largest script block has no syntax errors", () => {
@@ -295,14 +298,21 @@ describe("CODE-07 filterAndSort + OpenNowBtn structure", () => {
     expect(uses.length).toBeGreaterThanOrEqual(5);
   });
 
+  // Returns the JS slice for a section — from its marker to the next section's marker.
+  // Avoids a fixed-size window that can silently miss content when sections grow.
+  function sectionChunk(section) {
+    const ORDER = ["actividades", "museos", "shoppings", "comidas"];
+    const idx = js.indexOf(`active === "${section}"`);
+    const next = ORDER[ORDER.indexOf(section) + 1];
+    const end  = next ? js.indexOf(`active === "${next}"`) : js.length;
+    return { idx, chunk: js.slice(idx, end > idx ? end : js.length) };
+  }
+
   it.each(["actividades", "museos", "shoppings", "comidas"])(
     "%s section: OpenNowBtn appears before visibleCities.map",
     (section) => {
-      // Use the conditional pattern used in SectionContent, not the data definition
-      const marker = `active === "${section}"`;
-      const idx = js.indexOf(marker);
+      const { idx, chunk } = sectionChunk(section);
       expect(idx, `active === "${section}" not found in JS`).toBeGreaterThan(0);
-      const chunk = js.slice(idx, idx + 4000);
       const onIdx  = chunk.indexOf("OpenNowBtn");
       const mapIdx = chunk.indexOf("visibleCities.map");
       expect(onIdx,  `${section}: OpenNowBtn missing after section marker`).toBeGreaterThan(0);
@@ -314,9 +324,7 @@ describe("CODE-07 filterAndSort + OpenNowBtn structure", () => {
   it.each(["actividades", "museos", "shoppings", "comidas"])(
     "%s section: filterAndSort appears inside visibleCities.map callback",
     (section) => {
-      const marker = `active === "${section}"`;
-      const idx = js.indexOf(marker);
-      const chunk = js.slice(idx, idx + 4000);
+      const { chunk } = sectionChunk(section);
       const mapIdx = chunk.indexOf("visibleCities.map");
       const fsIdx  = chunk.indexOf("filterAndSort(", mapIdx);
       expect(fsIdx, `${section}: filterAndSort not found after visibleCities.map`).toBeGreaterThan(mapIdx);
@@ -327,12 +335,12 @@ describe("CODE-07 filterAndSort + OpenNowBtn structure", () => {
 // ── A11Y-01: SectionList uses <ul> not div[role=list] ────────────────────
 
 describe("A11Y-01 semantic list markup", () => {
-  it("SectionList renders ul, not div with role=list", () => {
-    expect(html).toMatch(/createElement\("ul"/);
+  it("SectionList renders ul with role='list' (required for VoiceOver on iOS/Safari with list-style:none)", () => {
+    expect(html).toMatch(/createElement\("ul",\s*\{\s*role:\s*["']list["']/);
   });
 
-  it("no div with role=list exists in JS", () => {
-    expect(html).not.toMatch(/role:\s*["']list["']/);
+  it("no div carries role='list' (semantic markup is on the ul)", () => {
+    expect(html).not.toMatch(/createElement\("div"[^)]{0,80}role:\s*["']list["']/);
   });
 
   it("no button with role=listitem exists in JS", () => {
