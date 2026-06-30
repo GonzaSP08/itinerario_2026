@@ -1,6 +1,10 @@
 import { ALLOWED_EMAILS, parseBrazilianNumber } from "./lib.js";
 
-const ALLOWED_ORIGIN = "https://ales-birthday.pages.dev";
+// Production origin + any Cloudflare Pages preview deploy of the same project.
+// The email allowlist (ALLOWED_EMAILS) is the real auth gate, so previews are safe to allow.
+const PAGES_ORIGIN_RE = /^https:\/\/(?:[a-z0-9-]+\.)?ales-birthday\.pages\.dev$/;
+function isAllowedOrigin(o) { return PAGES_ORIGIN_RE.test(o); }
+
 const FLIGHT_RE = /^[A-Z0-9]{2}\d{1,4}$/i;
 const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
@@ -45,18 +49,16 @@ async function checkRateLimit(key, kvStore) {
   return false;
 }
 
-function corsHeaders() {
+function corsHeaders(origin) {
   return {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Vary": "Origin",
   };
 }
 
-function cors(body, status) {
-  return new Response(body, { status, headers: corsHeaders() });
-}
 
 // HMAC-SHA256 token helpers (replaces base64 encoding)
 async function signToken(data, secret) {
@@ -93,13 +95,14 @@ export default {
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "";
     const url = new URL(req.url);
+    const cors = (body, status) => new Response(body, { status, headers: corsHeaders(origin) });
 
-    if (origin !== ALLOWED_ORIGIN) {
+    if (!isAllowedOrigin(origin)) {
       return new Response("Forbidden", { status: 403 });
     }
 
     if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders() });
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
     // POST /generate-otp  — generates OTP server-side and sends it
@@ -207,7 +210,7 @@ export default {
         return new Response(data, {
           status: res.status,
           headers: {
-            ...corsHeaders(),
+            ...corsHeaders(origin),
             "Content-Type": "application/json",
             "Cache-Control": "public, max-age=300",
           },
@@ -277,7 +280,7 @@ export default {
         if (!ars || !isFinite(ars) || ars < 10) throw new Error("invalid");
         return new Response(JSON.stringify({ ok: true, ars, usd: usd || null }), {
           status: 200,
-          headers: { ...corsHeaders(), "Cache-Control": "public, max-age=300" },
+          headers: { ...corsHeaders(origin), "Cache-Control": "public, max-age=300" },
         });
       } catch (e) {
         return cors(JSON.stringify({ ok: false, reason: String(e) }), 502);
