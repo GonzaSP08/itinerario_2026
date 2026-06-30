@@ -245,7 +245,7 @@ describe("MEALS data integrity", () => {
   });
 
   it("all categories are valid", () => {
-    const allowed = ["Restaurante", "Bar", "Caf\xE9", "Heladera\xEDa"];
+    const allowed = ["Restaurante", "Bar", "Caf\xE9", "Heladera\xEDa"]; // 4 categorías vigentes (ver memory/project_gastronomy_guidelines.md)
     for (const m of MEALS) {
       expect(allowed, `${m.id} invalid category "${m.category}"`).toContain(m.category);
     }
@@ -261,6 +261,21 @@ describe("MEALS data integrity", () => {
   it("ids are unique", () => {
     const ids = MEALS.map((m) => m.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("each city+category group is sorted by rating descending", () => {
+    const cities = [...new Set(MEALS.map((m) => m.city))];
+    const cats   = [...new Set(MEALS.map((m) => m.category))];
+    for (const city of cities) {
+      for (const cat of cats) {
+        const group = MEALS.filter((m) => m.city === city && m.category === cat);
+        for (let i = 1; i < group.length; i++) {
+          const prev = parseFloat(group[i - 1].rating) || 0;
+          const curr = parseFloat(group[i].rating) || 0;
+          expect(curr, `${city}/${cat}: item ${i} (${group[i].name} ${curr}) debe ser ≤ item ${i-1} (${group[i-1].name} ${prev})`).toBeLessThanOrEqual(prev);
+        }
+      }
+    }
   });
 
   it("instagram handles have no @ prefix", () => {

@@ -37,7 +37,7 @@ export const accentForDark = (hex) => {
 };
 
 // ── Search matching ──────────────────────────────────────────────────────────
-export function matchesSearch(item, text, q = text.toLowerCase()) {
+export function matchesSearch(item, text, q = text == null ? "" : text.toLowerCase()) {
   if (!q.trim()) return true;
   return (
     (item.name || "").toLowerCase().includes(q) ||

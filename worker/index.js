@@ -1,9 +1,16 @@
+import { ALLOWED_EMAILS, parseBrazilianNumber } from "./lib.js";
+
 const ALLOWED_ORIGIN = "https://ales-birthday.pages.dev";
-const ALLOWED_EMAILS = ["pallottags@gmail.com", "alelukowski@gmail.com"];
 const FLIGHT_RE = /^[A-Z0-9]{2}\d{1,4}$/i;
 const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
-// In-memory rate limiter for /verify-otp (resets on worker restart, but covers most abuse)
+// Rate limiter for /verify-otp.
+// Uses KV (global across all Worker instances) when RATE_LIMIT_KV is bound;
+// falls back to in-memory Map (per-instance) if the binding is absent.
+// To enable global limiting: create a KV namespace and add to wrangler.toml:
+//   [[kv_namespaces]]
+//   binding = "RATE_LIMIT_KV"
+//   id = "<your-namespace-id>"
 const otpAttempts = new Map();
 const OTP_MAX_ATTEMPTS = 10;
 const OTP_WINDOW_MS = 15 * 60 * 1000;
@@ -12,8 +19,22 @@ function getRateKey(req) {
   return req.headers.get("CF-Connecting-IP") || req.headers.get("X-Forwarded-For") || "unknown";
 }
 
-function checkRateLimit(key) {
+async function checkRateLimit(key, kvStore) {
   const now = Date.now();
+  if (kvStore) {
+    const kvKey = `otp:${key}`;
+    const raw = await kvStore.get(kvKey);
+    const entry = raw ? JSON.parse(raw) : null;
+    if (!entry || now > entry.resetAt) {
+      await kvStore.put(kvKey, JSON.stringify({ count: 1, resetAt: now + OTP_WINDOW_MS }), { expirationTtl: Math.ceil(OTP_WINDOW_MS / 1000) });
+      return false;
+    }
+    entry.count++;
+    if (entry.count > OTP_MAX_ATTEMPTS) return true;
+    await kvStore.put(kvKey, JSON.stringify(entry), { expirationTtl: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)) });
+    return false;
+  }
+  // In-memory fallback
   const entry = otpAttempts.get(key);
   if (!entry || now > entry.resetAt) {
     otpAttempts.set(key, { count: 1, resetAt: now + OTP_WINDOW_MS });
@@ -113,7 +134,7 @@ export default {
     // POST /verify-otp
     if (req.method === "POST" && url.pathname === "/verify-otp") {
       const rateKey = getRateKey(req);
-      if (checkRateLimit(rateKey)) return cors(JSON.stringify({ ok: false, reason: "rate_limited" }), 429);
+      if (await checkRateLimit(rateKey, env.RATE_LIMIT_KV)) return cors(JSON.stringify({ ok: false, reason: "rate_limited" }), 429);
       if (!env.OTP_SECRET) return cors(JSON.stringify({ ok: false }), 503);
       let body;
       try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400); }
@@ -132,7 +153,6 @@ export default {
 
     // POST /send-otp  (legacy — kept for backward compat)
     if (req.method === "POST" && url.pathname === "/send-otp") {
-      // Guard missing env vars
       if (!env.EMAILJS_SVC_ID || !env.EMAILJS_TPL_ID || !env.EMAILJS_PUB_KEY || !env.EMAILJS_PRIV_KEY) {
         return cors(JSON.stringify({ ok: false }), 503);
       }
@@ -142,7 +162,6 @@ export default {
       const { to_email, otp_code } = body;
       if (!to_email || !otp_code) return cors(JSON.stringify({ ok: false }), 400);
 
-      // Server-side allowlist — client validation is not sufficient
       const normalizedEmail = String(to_email).trim().toLowerCase();
       if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
         return cors(JSON.stringify({ ok: false }), 403);
@@ -203,18 +222,12 @@ export default {
       if (!env.AI) return cors(JSON.stringify({ ok: false, reason: "ai_unavailable" }), 503);
       let body;
       try { body = await req.json(); } catch { return cors(JSON.stringify({ ok: false }), 400); }
-      const { image } = body; // data:image/jpeg;base64,...
+      const { image } = body;
       if (!image || !image.startsWith("data:image/")) return cors(JSON.stringify({ ok: false }), 400);
 
-      // Strip data URI prefix and convert base64 → Uint8Array
       const b64 = image.replace(/^data:image\/[a-z]+;base64,/, "");
-      const bin = atob(b64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
 
       try {
-        // Try Llama 3.2 Vision (messages format) first — better accuracy than LLaVA.
-        // Fall back to LLaVA 1.5 if Llama 3.2 fails.
         let text = "";
         try {
           const r = await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
@@ -231,7 +244,10 @@ export default {
           });
           text = (r?.response || r?.description || "").trim();
         } catch (_) {
-          // Fallback: LLaVA 1.5
+          // Fallback: LLaVA 1.5 — convert base64 to bytes only when needed
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
           const r2 = await env.AI.run("@cf/llava-hf/llava-1.5-7b-hf", {
             image: [...bytes],
             prompt: "What is the exact number shown in this image? Reply with ONLY the digits and decimal separator, nothing else.",
@@ -239,24 +255,7 @@ export default {
           });
           text = (r2?.description || r2?.response || "").trim();
         }
-        // Parse Brazilian number: may have period as thousands separator and comma as decimal
-        // e.g. "1.234,98" → 1234.98, "1234,98" → 1234.98, "149.00" → 149.00
-        const cleaned = text.replace(/[^\d.,]/g, "");
-        let price = null;
-        if (cleaned) {
-          const lastComma = cleaned.lastIndexOf(",");
-          const lastDot = cleaned.lastIndexOf(".");
-          let normalized;
-          if (lastComma > lastDot) {
-            // comma is decimal separator: remove dots (thousands), replace comma with dot
-            normalized = cleaned.replace(/\./g, "").replace(",", ".");
-          } else {
-            // dot is decimal separator: remove commas (thousands)
-            normalized = cleaned.replace(/,/g, "");
-          }
-          const n = parseFloat(normalized);
-          if (isFinite(n) && n > 0) price = n;
-        }
+        const price = parseBrazilianNumber(text);
         return cors(JSON.stringify({ ok: true, price, raw: text }), 200);
       } catch (e) {
         return cors(JSON.stringify({ ok: false, reason: String(e) }), 500);
