@@ -140,6 +140,17 @@ export function _cosSim(a, b) {
   return na && nb ? dot / Math.sqrt(na * nb) : 0;
 }
 
+// ── filterAndSort — city-grouped list filtering ──────────────────────────
+// isOpenNowFn is injected so callers can mock it in tests.
+// In main.html the global isOpenNow is used directly as a closure.
+export function filterAndSort(data, city, catFilter, searchText, openNow, getHours, isOpenNowFn = () => false) {
+  return data
+    .filter((x) => x.city === city)
+    .filter((x) => !catFilter.length || catFilter.includes(x.category))
+    .filter((x) => matchesSearch(x, searchText))
+    .filter((x) => !openNow || isOpenNowFn(getHours(x)))
+    .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
+}
 // ── Days until a "dd.mm.yyyy" date ──────────────────────────────────────────
 export function getDaysUntil(dateStr, fromDate = new Date()) {
   const [day, month, year] = dateStr.split(".");

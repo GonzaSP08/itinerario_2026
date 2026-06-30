@@ -272,3 +272,70 @@ describe("MEALS data integrity", () => {
     }
   });
 });
+
+// ── JS syntax validity ────────────────────────────────────────────────────
+// This test catches SyntaxError ('Unexpected token )') before it hits the browser.
+
+describe("main.html JS syntax", () => {
+  it("largest script block has no syntax errors", () => {
+    expect(() => new Function(js)).not.toThrow();
+  });
+});
+
+// ── CODE-07 structural integrity ──────────────────────────────────────────
+
+describe("CODE-07 filterAndSort + OpenNowBtn structure", () => {
+  it("filterAndSort is called at least 4 times (once per content section)", () => {
+    const calls = [...js.matchAll(/filterAndSort\(/g)];
+    expect(calls.length, "expected ≥4 calls to filterAndSort").toBeGreaterThanOrEqual(4);
+  });
+
+  it("OpenNowBtn appears at least 5 times (definition + 4 usages)", () => {
+    const uses = [...js.matchAll(/OpenNowBtn/g)];
+    expect(uses.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it.each(["actividades", "museos", "shoppings", "comidas"])(
+    "%s section: OpenNowBtn appears before visibleCities.map",
+    (section) => {
+      // Use the conditional pattern used in SectionContent, not the data definition
+      const marker = `active === "${section}"`;
+      const idx = js.indexOf(marker);
+      expect(idx, `active === "${section}" not found in JS`).toBeGreaterThan(0);
+      const chunk = js.slice(idx, idx + 4000);
+      const onIdx  = chunk.indexOf("OpenNowBtn");
+      const mapIdx = chunk.indexOf("visibleCities.map");
+      expect(onIdx,  `${section}: OpenNowBtn missing after section marker`).toBeGreaterThan(0);
+      expect(mapIdx, `${section}: visibleCities.map missing after section marker`).toBeGreaterThan(0);
+      expect(onIdx,  `${section}: OpenNowBtn must come before visibleCities.map`).toBeLessThan(mapIdx);
+    }
+  );
+
+  it.each(["actividades", "museos", "shoppings", "comidas"])(
+    "%s section: filterAndSort appears inside visibleCities.map callback",
+    (section) => {
+      const marker = `active === "${section}"`;
+      const idx = js.indexOf(marker);
+      const chunk = js.slice(idx, idx + 4000);
+      const mapIdx = chunk.indexOf("visibleCities.map");
+      const fsIdx  = chunk.indexOf("filterAndSort(", mapIdx);
+      expect(fsIdx, `${section}: filterAndSort not found after visibleCities.map`).toBeGreaterThan(mapIdx);
+    }
+  );
+});
+
+// ── A11Y-01: SectionList uses <ul> not div[role=list] ────────────────────
+
+describe("A11Y-01 semantic list markup", () => {
+  it("SectionList renders ul, not div with role=list", () => {
+    expect(html).toMatch(/createElement\("ul"/);
+  });
+
+  it("no div with role=list exists in JS", () => {
+    expect(html).not.toMatch(/role:\s*["']list["']/);
+  });
+
+  it("no button with role=listitem exists in JS", () => {
+    expect(html).not.toMatch(/role:\s*["']listitem["']/);
+  });
+});
