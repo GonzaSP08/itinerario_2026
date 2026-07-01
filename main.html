@@ -2375,12 +2375,12 @@ function useBrlRates() {
       const cocos = cocosRes.status === "fulfilled" && cocosRes.value?.ok ? cocosRes.value : null;
       const fawaz = fawazRes.status === "fulfilled" ? fawazRes.value : null;
       if (!cocos && !fawaz) {
-        setRates({ usd: 0.00175, ars: 1.78 }); setRateDate("estimado \xB7 junio 2026"); setRateSource("fallback"); return;
+        setRates(null); setRateDate(null); setRateSource("offline"); return;
       }
       const ars = cocos ? cocos.ars : fawaz.brl.ars;
       const usd = cocos?.usd || fawaz?.brl?.usd || 0.00175;
       const source = cocos ? "cocos" : "interbank";
-      const date = fawaz?.date || new Date().toISOString().slice(0, 10);
+      const date = cocos ? new Date().toISOString().slice(0, 10) : (fawaz?.date || new Date().toISOString().slice(0, 10));
       const r = { usd, ars };
       setRates(r); setRateDate(date); setRateSource(source);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates: r, date, source, ts: Date.now() })); } catch (e) {}
@@ -2414,10 +2414,12 @@ function CurrencyContent({ T, accent, rates, rateDate, rateSource }) {
   };
 
   if (!rates) return /* @__PURE__ */ React.createElement("div", { style: { padding: "48px 22px", textAlign: "center" } },
-    /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", gap: 6, alignItems: "center" } },
-      [0,1,2].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: accent, animation: `pulse 1.2s ease ${i*0.2}s infinite` } })),
-      /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.50), letterSpacing: "0.06em", marginLeft: 8 } }, "Obteniendo tasas···")
-    )
+    rateSource === "offline"
+      ? /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 13, color: fade(T, 0.50), letterSpacing: "0.04em" } }, "Sin conexi\xF3n \xB7 reintent\xE1 m\xE1s tarde")
+      : /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", gap: 6, alignItems: "center" } },
+          [0,1,2].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: accent, animation: `pulse 1.2s ease ${i*0.2}s infinite` } })),
+          /* @__PURE__ */ React.createElement(Mono, { style: { fontSize: 11, color: fade(T, 0.50), letterSpacing: "0.06em", marginLeft: 8 } }, "Obteniendo tasas\xB7\xB7\xB7")
+        )
   );
   const inputStyle = (focused) => ({
     width: "100%", padding: "14px 16px", boxSizing: "border-box",
