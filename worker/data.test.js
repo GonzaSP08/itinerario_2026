@@ -245,7 +245,7 @@ describe("MEALS data integrity", () => {
   });
 
   it("all categories are valid", () => {
-    const allowed = ["Restaurante", "Bar", "Caf\xE9", "Heladera\xEDa"]; // 4 categorías vigentes (ver memory/project_gastronomy_guidelines.md)
+    const allowed = ["Restaurante", "Bar", "Caf\xE9", "Helader\xEDa"]; // 4 categorías vigentes (ver memory/project_gastronomy_guidelines.md)
     for (const m of MEALS) {
       expect(allowed, `${m.id} invalid category "${m.category}"`).toContain(m.category);
     }
