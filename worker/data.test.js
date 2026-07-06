@@ -50,6 +50,8 @@ const ACTIVITIES      = extractData(js, "ACTIVITIES");
 const MUSEUMS         = extractData(js, "MUSEUMS");
 const SHOPPINGS       = extractData(js, "SHOPPINGS");
 const MEALS           = extractData(js, "MEALS");
+const AREA_COORDS_SP  = extractData(js, "AREA_COORDS_SP");
+const AREA_COORDS_RJ  = extractData(js, "AREA_COORDS_RJ");
 
 // ── FLIGHTS ──────────────────────────────────────────────────────────────────
 
@@ -285,6 +287,108 @@ describe("MEALS data integrity", () => {
         expect(m.instagram.trim()).not.toBe("");
       }
     }
+  });
+});
+
+// ── MAP-01: area coords coverage ─────────────────────────────────────────
+// Catches venues whose `area` field has no entry in AREA_COORDS_SP/RJ,
+// which makes the map point invisible (no centroid to place the pin).
+
+describe("MAP-01 area coords coverage", () => {
+  const allPOIs = [
+    ...ACTIVITIES.map((x) => ({ ...x, section: "ACTIVITIES" })),
+    ...MUSEUMS.map((x)    => ({ ...x, section: "MUSEUMS" })),
+    ...SHOPPINGS.map((x)  => ({ ...x, section: "SHOPPINGS" })),
+    ...MEALS.map((x)      => ({ ...x, section: "MEALS" })),
+  ];
+
+  it("every POI area exists in AREA_COORDS_SP or AREA_COORDS_RJ", () => {
+    const missing = allPOIs.filter((item) => {
+      const coords = item.city.includes("Paulo") ? AREA_COORDS_SP : AREA_COORDS_RJ;
+      return !coords[item.area];
+    });
+    expect(
+      missing.map((m) => `[${m.section}] ${m.id} "${m.name}" area="${m.area}"`),
+      "POIs with unmapped area (invisible on map)"
+    ).toEqual([]);
+  });
+});
+
+// ── CROSS-01: globally unique IDs ─────────────────────────────────────────
+// Catches duplicate IDs within a section (e.g. two me_r_rj05 entries after
+// a bad insertion). Each section already has its own uniqueness test; this
+// one catches cross-section prefix collisions too.
+
+describe("CROSS-01 globally unique IDs", () => {
+  it("all IDs across ACTIVITIES, MUSEUMS, SHOPPINGS, MEALS are unique", () => {
+    const all = [
+      ...ACTIVITIES.map((x) => x.id),
+      ...MUSEUMS.map((x)    => x.id),
+      ...SHOPPINGS.map((x)  => x.id),
+      ...MEALS.map((x)      => x.id),
+    ];
+    const dupes = all.filter((id, i) => all.indexOf(id) !== i);
+    expect(dupes, `duplicate IDs: ${[...new Set(dupes)].join(", ")}`).toEqual([]);
+  });
+});
+
+// ── SECTION-01: hint text matches actual counts ─���─────────────────────────
+// The section subtitle hints (e.g. "15 por ciudad · SP & RJ") are shown in
+// the UI. These tests ensure the hints stay consistent with the real data
+// so a stale label doesn't mislead the user.
+//
+// EXPECTED counts (update here if you intentionally change the data size):
+const EXPECTED = {
+  activitiesPerCity:   30,
+  museumsPerCity:      15,
+  shoppingsPerCity:    12,
+  mealsPerCityPerCat: { Restaurante: 20, Bar: 20, "Caf\xE9": 20, "Helader\xEDa": 10 },
+};
+
+describe("SECTION-01 data counts match UI hints", () => {
+  it(`ACTIVITIES: ${EXPECTED.activitiesPerCity} per city`, () => {
+    const sp = ACTIVITIES.filter((a) => a.city.includes("Paulo")).length;
+    const rj = ACTIVITIES.filter((a) => a.city.includes("Rio")).length;
+    expect(sp, "SP activities").toBe(EXPECTED.activitiesPerCity);
+    expect(rj, "RJ activities").toBe(EXPECTED.activitiesPerCity);
+  });
+
+  it(`MUSEUMS: ${EXPECTED.museumsPerCity} per city`, () => {
+    const sp = MUSEUMS.filter((m) => m.city.includes("Paulo")).length;
+    const rj = MUSEUMS.filter((m) => m.city.includes("Rio")).length;
+    expect(sp, "SP museums").toBe(EXPECTED.museumsPerCity);
+    expect(rj, "RJ museums").toBe(EXPECTED.museumsPerCity);
+  });
+
+  it(`SHOPPINGS: ${EXPECTED.shoppingsPerCity} per city`, () => {
+    const sp = SHOPPINGS.filter((s) => s.city.includes("Paulo")).length;
+    const rj = SHOPPINGS.filter((s) => s.city.includes("Rio")).length;
+    expect(sp, "SP shoppings").toBe(EXPECTED.shoppingsPerCity);
+    expect(rj, "RJ shoppings").toBe(EXPECTED.shoppingsPerCity);
+  });
+
+  it("MEALS: each city+category matches expected count", () => {
+    const cities = ["S\xE3o Paulo", "Rio de Janeiro"];
+    for (const city of cities) {
+      for (const [cat, expectedCount] of Object.entries(EXPECTED.mealsPerCityPerCat)) {
+        const count = MEALS.filter((m) => m.city === city && m.category === cat).length;
+        expect(count, `${city} / ${cat}`).toBe(expectedCount);
+      }
+    }
+  });
+
+  it("section hint strings in JS contain the correct counts", () => {
+    expect(js, "museos hint").toMatch(/museos.*?hint.*?15 por ciudad/s);
+    expect(js, "shoppings hint").toMatch(/shoppings.*?hint.*?12 por ciudad/s);
+    expect(js, "actividades hint").toMatch(/actividades.*?hint.*?30 por ciudad/s);
+  });
+
+  it("SECTIONS meta strings in JS contain the correct counts", () => {
+    // SECTIONS is the home-screen summary array — a separate source of truth
+    // from the per-section hint strings. Both must stay in sync with data counts.
+    expect(js, "SECTIONS museos meta").toMatch(/museos.*?meta.*?15 por ciudad/s);
+    expect(js, "SECTIONS shoppings meta").toMatch(/shoppings.*?meta.*?12 por ciudad/s);
+    expect(js, "SECTIONS actividades meta").toMatch(/actividades.*?meta.*?30 por ciudad/s);
   });
 });
 
